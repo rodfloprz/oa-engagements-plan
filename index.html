@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Value Drivers &amp; Engagement Roadmap — Grafana Labs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#121317; --bg-2:#0d0e11;
+    --surface:#1b1d23; --surface-2:#23262e; --surface-3:#2b2e37;
+    --border:#33363f; --border-soft:#282b33;
+    --text:#eceef2; --text-dim:#a5aab5; --text-faint:#6d7280;
+    --brand:#ff8833;
+    --c-tco:#f2a94e; --c-derisk:#4fb0d9; --c-retention:#6fcf7a; --c-ttm:#b58af2;
+    --radius:8px; --radius-sm:5px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--bg); color:var(--text); font-family:'Inter',system-ui,-apple-system,Segoe UI,sans-serif; -webkit-font-smoothing:antialiased; line-height:1.5;}
+  ::selection{background:var(--brand); color:#1a1200;}
+  button{font-family:inherit;}
+  h1,h2,h3{margin:0;}
+
+  /* ---------- sticky head ---------- */
+  .sticky-head{position:sticky; top:0; z-index:40; background:var(--bg);}
+  .topbar{background:linear-gradient(180deg,var(--bg-2) 0%, var(--bg) 100%); border-bottom:1px solid var(--border);}
+  .topbar-inner{max-width:1440px; margin:0 auto; padding:14px 24px 12px; display:flex; flex-wrap:wrap; align-items:flex-start; gap:16px;}
+  .brand-block{display:flex; align-items:center; gap:10px; margin-right:auto;}
+  .brand-mark{width:34px;height:34px;border-radius:9px; background:radial-gradient(120% 120% at 20% 15%, #ffb066 0%, var(--brand) 45%, #c85c00 100%); display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .brand-mark svg{width:18px;height:18px; stroke:#1a0f00; fill:none; stroke-width:2.2; stroke-linecap:round;}
+  .brand-title{font-weight:700; font-size:15px;}
+  .brand-sub{font-size:12px; color:var(--text-faint); margin-top:1px;}
+
+  .lang-switch{display:flex; border:1px solid var(--border); border-radius:999px; padding:3px; background:var(--surface); flex-shrink:0;}
+  .lang-switch button{border:none; background:transparent; color:var(--text-dim); padding:6px 14px; border-radius:999px; font-size:13px; font-weight:600; cursor:pointer;}
+  .lang-switch button.active{background:var(--brand); color:#1a0f00;}
+
+  .field-row{display:flex; flex-wrap:wrap; gap:12px; width:100%; padding-top:2px;}
+  .field{display:flex; flex-direction:column; gap:4px; min-width:150px; flex:1 1 170px;}
+  .field label{font-size:11px; color:var(--text-faint); font-weight:600;}
+  .field input{background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:var(--radius-sm); padding:7px 10px; font-size:13px; font-family:inherit;}
+  .field input:focus{outline:none; border-color:var(--brand);}
+  .field input::placeholder{color:var(--text-faint);}
+
+  /* ---------- step nav ---------- */
+  .stepnav-wrap{border-bottom:1px solid var(--border); background:var(--bg);}
+  .stepnav{max-width:1440px; margin:0 auto; padding:10px 24px; display:flex; gap:10px; flex-wrap:wrap;}
+  .step-btn{display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--border); color:var(--text-dim); padding:9px 16px; border-radius:999px; font-size:13px; font-weight:600; cursor:pointer;}
+  .step-btn .step-badge{background:var(--surface-3); color:var(--text-dim); font-size:11px; font-weight:700; padding:1px 8px; border-radius:999px;}
+  .step-btn.active{background:var(--surface-2); color:var(--text); border-color:var(--brand);}
+  .step-btn.active .step-badge{background:var(--brand); color:#1a0f00;}
+  .step-arrow{color:var(--text-faint); display:flex; align-items:center; font-size:13px;}
+
+  /* ---------- layout ---------- */
+  .layout{max-width:1440px; margin:0 auto; display:grid; grid-template-columns:230px minmax(0,1fr) 300px; gap:20px; padding:20px 24px 60px; align-items:start;}
+  @media (max-width:1080px){ .layout{grid-template-columns:1fr;} }
+
+  .rail{display:flex; flex-direction:column; gap:8px; position:sticky; top:186px;}
+  @media (max-width:1080px){ .rail{position:static; flex-direction:row; overflow-x:auto; gap:8px; padding-bottom:4px; -webkit-overflow-scrolling:touch;} }
+  .rail-tab{display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--border); border-left:3px solid transparent; border-radius:var(--radius); padding:10px 12px; cursor:pointer; text-align:left; color:var(--text-dim); flex-shrink:0;}
+  .rail-tab .rail-icon{width:20px;height:20px; flex-shrink:0;}
+  .rail-tab .rail-icon svg{width:20px;height:20px; stroke:currentColor; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round;}
+  .rail-tab .rail-text{display:flex; flex-direction:column; min-width:0;}
+  .rail-tab .rail-name{font-size:12.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:150px;}
+  .rail-tab .rail-count{font-size:11px; color:var(--text-faint);}
+  .rail-tab.active{background:var(--surface-2); color:var(--text);}
+  .rail-tab:hover{background:var(--surface-2);}
+
+  .main-col{min-width:0; display:flex; flex-direction:column; gap:16px;}
+  .cat-header{display:flex; align-items:flex-start; gap:12px; padding-bottom:2px;}
+  .cat-header .swatch{width:6px; border-radius:4px; align-self:stretch; flex-shrink:0; min-height:44px;}
+  .cat-header h2{font-size:19px; font-weight:700; margin-bottom:4px;}
+  .cat-header p{margin:0; font-size:13px; color:var(--text-dim); max-width:640px;}
+
+  .proof-strip{background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius); padding:10px 14px; font-size:12px; color:var(--text-faint); line-height:1.6;}
+  .proof-strip b{color:var(--text-dim); font-weight:600;}
+
+  .case-list{display:flex; flex-direction:column; gap:10px;}
+  .case-card{background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--border); border-radius:var(--radius); padding:14px 16px; transition:border-color .18s ease;}
+  .case-card.selected{border-left-color:var(--cat-color, var(--brand)); background:var(--surface-2);}
+  .case-top{display:flex; align-items:flex-start; gap:10px;}
+  .case-check{margin-top:2px; width:18px; height:18px; flex-shrink:0; accent-color:var(--cat-color, var(--brand)); cursor:pointer;}
+  .case-name{font-size:14.5px; font-weight:600; cursor:pointer; user-select:none;}
+  .case-features{font-size:12.5px; color:var(--text-dim); margin:3px 0 0;}
+  .case-desc{font-size:12.5px; color:var(--text-faint); margin:6px 0 0; line-height:1.55;}
+  .case-detail{margin-top:12px; padding-top:12px; border-top:1px dashed var(--border-soft); display:flex; flex-direction:column; gap:12px;}
+  .detail-block-label{font-size:11px; font-weight:700; color:var(--text-dim);}
+  .priority-options{display:flex; gap:6px;}
+  .priority-btn{border:1px solid var(--border); background:var(--surface-2); color:var(--text-dim); padding:5px 12px; border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;}
+  .priority-btn.on-alta{background:#5a2a1f; border-color:#c0512f; color:#ffcaa8;}
+  .priority-btn.on-media{background:#4a4318; border-color:#b89a2f; color:#f3dd9a;}
+  .priority-btn.on-baja{background:#26333a; border-color:#3f6672; color:#a9d3df;}
+  .kpi-list{display:flex; flex-direction:column; gap:6px;}
+  .kpi-item{display:flex; align-items:flex-start; gap:8px; font-size:12.5px; color:var(--text-dim);}
+  .kpi-item input{margin-top:2px; accent-color:var(--cat-color, var(--brand)); cursor:pointer;}
+  .kpi-item label{cursor:pointer;}
+  .notes-area textarea{width:100%; min-height:56px; resize:vertical; background:var(--surface-2); border:1px solid var(--border); color:var(--text); border-radius:var(--radius-sm); padding:8px 10px; font-size:12.5px; font-family:inherit;}
+  .notes-area textarea:focus{outline:none; border-color:var(--brand);}
+  .empty-state{border:1px dashed var(--border); border-radius:var(--radius); padding:24px; text-align:center; color:var(--text-faint); font-size:13px;}
+
+  /* ---------- engagements view ---------- */
+  .eng-intro{display:flex; flex-direction:column; gap:4px; margin-bottom:4px;}
+  .eng-intro h2{font-size:19px; font-weight:700;}
+  .eng-intro p{margin:0; font-size:13px; color:var(--text-dim); max-width:720px;}
+
+  .rec-banner{background:var(--surface); border:1px solid var(--border-soft); border-radius:var(--radius); padding:14px 16px;}
+  .rec-banner-title{font-size:13px; font-weight:700; color:var(--text); margin-bottom:10px;}
+  .rec-empty{font-size:12.5px; color:var(--text-faint); line-height:1.6;}
+  .rec-grid{display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:10px;}
+  .rec-card{background:var(--surface-2); border:1px solid var(--border); border-left:3px solid var(--rec-color, var(--brand)); border-radius:var(--radius); padding:12px 14px;}
+  .rec-card .rec-rank{font-size:10.5px; color:var(--text-faint); font-weight:700;}
+  .rec-card .rec-name{font-size:13.5px; font-weight:700; margin:2px 0 6px;}
+  .rec-card .rec-phase{font-size:10.5px; color:var(--text-faint); margin-bottom:6px;}
+  .rec-card .rec-why{font-size:11.5px; color:var(--text-dim); line-height:1.5;}
+  .rec-card .rec-why b{color:var(--text);}
+
+  .found-banner{background:rgba(79,176,217,0.08); border:1px solid rgba(79,176,217,0.3); border-radius:var(--radius); padding:12px 16px; display:flex; gap:10px; align-items:flex-start;}
+  .found-banner svg{width:18px;height:18px; stroke:var(--c-derisk); fill:none; stroke-width:1.8; stroke-linecap:round; margin-top:1px; flex-shrink:0;}
+  .found-banner-title{font-size:12.5px; font-weight:700; color:var(--text); margin-bottom:3px;}
+  .found-banner-text{font-size:12px; color:var(--text-dim); line-height:1.55;}
+
+  .catalog-title{font-size:15px; font-weight:700; margin-top:6px;}
+  .catalog-hint{font-size:12px; color:var(--text-faint); margin:2px 0 4px;}
+
+  .phase-section{scroll-margin-top:196px; display:flex; flex-direction:column; gap:10px;}
+  .phase-header{display:flex; align-items:center; gap:10px; padding:6px 0 2px;}
+  .phase-header .phase-icon{width:22px;height:22px; color:var(--brand); flex-shrink:0;}
+  .phase-header .phase-icon svg{width:22px;height:22px; stroke:currentColor; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round;}
+  .phase-header h3{font-size:15.5px; font-weight:700;}
+  .phase-header .phase-count{font-size:11.5px; color:var(--text-faint); margin-left:auto; flex-shrink:0;}
+
+  .eng-card{background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--border); border-radius:var(--radius); padding:13px 15px;}
+  .eng-card.checked{border-left-color:var(--brand); background:var(--surface-2);}
+  .eng-top{display:flex; align-items:flex-start; gap:10px;}
+  .eng-check{margin-top:2px; width:18px; height:18px; flex-shrink:0; accent-color:var(--brand); cursor:pointer;}
+  .eng-title-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .eng-name{font-size:14px; font-weight:600; cursor:pointer; user-select:none;}
+  .status-badge{font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; flex-shrink:0;}
+  .badge-live{background:rgba(111,207,122,0.15); color:#6fcf7a; border:1px solid rgba(111,207,122,0.35);}
+  .badge-dev{background:rgba(242,169,78,0.15); color:#f2a94e; border:1px solid rgba(242,169,78,0.35);}
+  .badge-planned{background:rgba(165,170,181,0.14); color:#a5aab5; border:1px solid rgba(165,170,181,0.32);}
+  .tag-pill{font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; flex-shrink:0;}
+  .tag-fundamental{background:rgba(79,176,217,0.15); color:#4fb0d9; border:1px solid rgba(79,176,217,0.35);}
+  .tag-recommended{background:rgba(255,136,51,0.15); color:#ff8833; border:1px solid rgba(255,136,51,0.35);}
+  .eng-desc{font-size:12.5px; color:var(--text-faint); margin:6px 0 0; line-height:1.55;}
+  .eng-detail-row{display:flex; flex-wrap:wrap; gap:24px; margin-top:10px;}
+  .eng-detail-col{flex:1 1 220px; min-width:0;}
+  .eng-detail-label{font-size:10.5px; font-weight:700; color:var(--text-dim); margin-bottom:5px;}
+  .deliv-list{margin:0; padding-left:16px; font-size:12px; color:var(--text-faint); line-height:1.6;}
+  .eng-time{font-size:12px; color:var(--text-faint);}
+
+  /* ---------- summary panel ---------- */
+  .summary{background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; display:flex; flex-direction:column; gap:14px; position:sticky; top:186px;}
+  @media (max-width:1080px){ .summary{position:static;} }
+  .summary h3{font-size:14px; font-weight:700;}
+  .summary-total{display:flex; align-items:baseline; gap:8px;}
+  .summary-total .num{font-size:26px; font-weight:800; color:var(--brand); line-height:1;}
+  .summary-total .lbl{font-size:11.5px; color:var(--text-dim);}
+  .cat-bars{display:flex; flex-direction:column; gap:8px;}
+  .cat-bar-row{display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--text-dim);}
+  .cat-bar-track{flex:1; height:6px; border-radius:4px; background:var(--surface-3); overflow:hidden;}
+  .cat-bar-fill{height:100%; border-radius:4px;}
+  .cat-bar-count{font-size:11px; color:var(--text-faint); width:34px; text-align:right; flex-shrink:0;}
+  .kpi-total{font-size:12px; color:var(--text-dim);}
+  .kpi-total b{color:var(--text); font-weight:700;}
+  .summary-divider{border-top:1px dashed var(--border-soft);}
+  .export-btns{display:flex; flex-direction:column; gap:8px;}
+  .btn{border:none; border-radius:var(--radius-sm); padding:10px 14px; font-size:13px; font-weight:600; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;}
+  .btn:active{transform:scale(.98);}
+  .btn-primary{background:var(--brand); color:#1a0f00;}
+  .btn-secondary{background:var(--surface-2); color:var(--text); border:1px solid var(--border);}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+  .btn svg{width:15px;height:15px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round;}
+  .export-hint{font-size:11px; color:var(--text-faint); margin-top:-4px;}
+  .reset-link{background:none; border:none; color:var(--text-faint); font-size:11.5px; text-decoration:underline; cursor:pointer; padding:0; text-align:left; width:fit-content;}
+  .reset-link:hover{color:var(--text-dim);}
+  .cta-link{background:none; border:1px solid var(--border); color:var(--text-dim); font-size:12px; font-weight:600; padding:8px 12px; border-radius:var(--radius-sm); cursor:pointer; text-align:center;}
+  .cta-link:hover{border-color:var(--brand); color:var(--text);}
+  .autosave-note{font-size:10.5px; color:var(--text-faint); display:flex; align-items:center; gap:5px;}
+  .autosave-dot{width:6px;height:6px;border-radius:50%;background:var(--c-retention);flex-shrink:0;}
+  .footer-note{max-width:1440px; margin:0 auto; padding:0 24px 40px; font-size:11px; color:var(--text-faint); display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px;}
+
+  @media (max-width:640px){
+    .topbar-inner{padding:12px 16px 10px;}
+    .stepnav{padding:10px 16px;}
+    .layout{padding:16px 16px 50px;}
+    .footer-note{padding:0 16px 30px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="sticky-head">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand-block">
+        <div class="brand-mark"><svg viewBox="0 0 24 24"><path d="M4 20V10M12 20V4M20 20v-7"/></svg></div>
+        <div>
+          <div class="brand-title" id="txt-app-title">Value Drivers &amp; Engagement Roadmap</div>
+          <div class="brand-sub" id="txt-app-sub">Correlaciona tus prioridades de negocio con el roadmap de engagements</div>
+        </div>
+      </div>
+      <div class="lang-switch" role="group" aria-label="Idioma">
+        <button type="button" id="lang-es" onclick="setLang('es')">ES</button>
+        <button type="button" id="lang-en" onclick="setLang('en')">EN</button>
+      </div>
+      <div class="field-row">
+        <div class="field"><label id="lbl-client" for="in-client">Cliente / Cuenta</label><input id="in-client" type="text" oninput="onChromeInput('client', this.value)"></div>
+        <div class="field"><label id="lbl-contact" for="in-contact">Contacto principal</label><input id="in-contact" type="text" oninput="onChromeInput('contact', this.value)"></div>
+        <div class="field"><label id="lbl-prepared" for="in-prepared">Preparado por</label><input id="in-prepared" type="text" oninput="onChromeInput('preparedBy', this.value)"></div>
+        <div class="field"><label id="lbl-date" for="in-date">Fecha</label><input id="in-date" type="date" oninput="onChromeInput('date', this.value)"></div>
+      </div>
+    </div>
+  </div>
+  <div class="stepnav-wrap">
+    <div class="stepnav" id="stepnav"></div>
+  </div>
+</div>
+
+<div class="layout">
+  <nav class="rail" id="rail"></nav>
+  <div class="main-col" id="main-col"></div>
+  <aside class="summary" id="summary"></aside>
+</div>
+
+<div class="footer-note">
+  <span id="txt-footer">Herramienta interna de Grafana Labs para talleres de alineación de value drivers y engagements.</span>
+  <span class="autosave-note"><span class="autosave-dot"></span><span id="txt-autosaved">Progreso guardado en este navegador</span></span>
+</div>
+
+<script>
+/* =========================================================
+   ICONS
+   ========================================================= */
+const ICONS = {
+  tco: '<path d="M12 3.5c4 0 7 1.4 7 3.2S16 10 12 10s-7-1.5-7-3.3 3-3.2 7-3.2z"/><path d="M5 6.7v5.5c0 1.8 3.1 3.3 7 3.3s7-1.5 7-3.3V6.7"/><path d="M5 12.2v5.4c0 1.8 3.1 3.3 7 3.3s7-1.5 7-3.3v-5.4"/>',
+  derisk: '<path d="M12 3l7 3.1v5.4c0 5.2-3.6 8.4-7 9.5-3.4-1.1-7-4.3-7-9.5V6.1L12 3z"/><path d="M9 12.2l2.1 2.1 3.9-4.3"/>',
+  retention: '<path d="M4.5 12A7.5 7.5 0 0 1 18 6.6M19.5 12A7.5 7.5 0 0 1 6 17.4"/><path d="M17.6 3.8v3.4h-3.4"/><path d="M6.4 20.2v-3.4h3.4"/>',
+  ttm: '<path d="M12 2.3c2.8 1.9 4.6 5.6 4.6 9.3 0 1.9-.9 3.7-1.9 4.7l-2.7 2.6-2.7-2.6c-1-1-1.9-2.8-1.9-4.7 0-3.7 1.8-7.4 4.6-9.3z"/><path d="M8.6 15.6l-2.4 2.4M15.4 15.6l2.4 2.4"/><circle cx="12" cy="10.5" r="1.4"/>',
+  p1: '<circle cx="10" cy="10" r="6.3"/><path d="M14.7 14.7L20 20"/>',
+  p2: '<path d="M4 16l5-6 4 4 7-8"/><path d="M20 6h-5.5v5.5"/>',
+  p3: '<path d="M12 3.5l9 4.7-9 4.7-9-4.7 9-4.7z"/><path d="M6.5 10.2v5c0 1.4 2.6 2.7 5.5 2.7s5.5-1.3 5.5-2.7v-5"/>',
+  p4: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.2"/><circle cx="12" cy="12" r="0.7" fill="currentColor"/>',
+  tactical: '<path d="M13 2 5 14h6l-1 8 9-12h-6l1-8z"/>',
+  bulb: '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3 11.2c.6.4 1 1 1 1.8v0h4v0c0-.8.4-1.4 1-1.8A6 6 0 0 0 12 3z"/>'
+};
+
+/* =========================================================
+   VALUE DRIVERS DATA
+   ========================================================= */
+const DATA = [
+  {
+    id:'tco', color:'var(--c-tco)', colorHex:'#f2a94e', icon:ICONS.tco,
+    title:{es:'Lower TCO — Reducir el Costo Total de Propiedad', en:'Lower TCO — Reduce Total Cost of Ownership'},
+    sub:{es:'Cómo bajar el costo total de la observabilidad sin perder cobertura.', en:'How to lower the total cost of observability without losing coverage.'},
+    proof:{es:'Iron Mountain (-43% TCO · $640K ahorros/año · 2 FTEs liberados) · The Trade Desk (~$1.74M/año) · ASOS (-30% costos) · SpotOn (-70% costos vs. Datadog)', en:'Iron Mountain (-43% TCO · $640K savings/year · 2 FTEs freed) · The Trade Desk (~$1.74M/year) · ASOS (-30% costs) · SpotOn (-70% costs vs. Datadog)'},
+    cases:[
+      { id:'tco-1', name:{es:'Consolidación de herramientas', en:'Tool consolidation'}, features:{es:'Reemplazar múltiples plataformas (Datadog, Splunk, New Relic, etc.) con una sola', en:'Replace multiple platforms (Datadog, Splunk, New Relic, etc.) with a single one'}, desc:{es:'El cliente opera con 5–10+ herramientas de monitoreo distintas, generando costos duplicados, fatiga operacional y brechas de visibilidad. Grafana consolida todo en una sola plataforma con precios basados en uso, no por asiento.', en:'The client operates with 5\u201310+ different monitoring tools, generating duplicated costs, operational fatigue, and visibility gaps. Grafana consolidates everything into a single platform with usage-based pricing, not per-seat.'}, kpis:[{es:'Nº de herramientas antes vs. después', en:'Number of tools before vs. after'},{es:'Ahorro anual en licencias ($)', en:'Annual license savings ($)'}] },
+      { id:'tco-2', name:{es:'Migración de OSS a Cloud', en:'OSS-to-Cloud migration'}, features:{es:'Eliminar carga de infraestructura, mantenimiento y upgrades propios de OSS (LGTM self-hosted)', en:'Eliminate the infrastructure, maintenance and upgrade burden of self-hosted OSS (LGTM self-hosted)'}, desc:{es:'Organizaciones que gestionan Grafana OSS asumen costos ocultos: ingenieros dedicados a mantenimiento, escalado de infraestructura y seguridad. Al migrar a Grafana Cloud, eliminan esa carga y redirigen talento a innovación.', en:'Organizations running Grafana OSS absorb hidden costs: engineers dedicated to maintenance, infrastructure scaling and security. Migrating to Grafana Cloud removes that burden and redirects talent toward innovation.'}, kpis:[{es:'FTEs liberados', en:'FTEs freed up'},{es:'Costo operativo OSS antes vs. Grafana Cloud', en:'OSS operating cost before vs. Grafana Cloud'},{es:'% reducción TCO observabilidad', en:'% reduction in observability TCO'}] },
+      { id:'tco-3', name:{es:'Optimización de infraestructura cloud', en:'Cloud infrastructure optimization'}, features:{es:'Continuous Profiling (Pyroscope) para identificar recursos sobredimensionados (CPU/mem) + visibilidad de costos por equipo', en:'Continuous Profiling (Pyroscope) to identify oversized resources (CPU/mem) + cost visibility by team'}, desc:{es:'Sin perfilado continuo, los equipos sobreaprovisionan por precaución. Grafana permite identificar exactamente qué consume qué, habilitar chargeback/showback por equipo y eliminar el muestreo forzado por costo.', en:'Without continuous profiling, teams over-provision out of caution. Grafana identifies exactly what consumes what, enables chargeback/showback by team, and removes cost-driven forced sampling.'}, kpis:[{es:'Reducción % en gasto cloud', en:'% reduction in cloud spend'},{es:'Costo de observabilidad por servicio', en:'Observability cost per service'},{es:'Tasa de sampling (antes vs. ahora 100%)', en:'Sampling rate (before vs. now 100%)'}] },
+      { id:'tco-4', name:{es:'Reducción de métricas ingestadas', en:'Reduction of ingested metrics'}, features:{es:'Adaptive Metrics / Adaptive Telemetry para eliminar series de alta cardinalidad sin valor', en:'Adaptive Metrics / Adaptive Telemetry to eliminate high-cardinality series with no analytical value'}, desc:{es:'Clientes pagan por datos que nunca consultan. Adaptive Metrics identifica automáticamente las series no utilizadas y aplica reglas de agregación, reduciendo volumen 40–80% sin pérdida de visibilidad.', en:'Clients pay for data they never query. Adaptive Metrics automatically identifies unused series and applies aggregation rules, reducing volume by 40\u201380% with no loss of visibility.'}, kpis:[{es:'Volumen de series métricas antes vs. después', en:'Metric series volume before vs. after'},{es:'% reducción en ingesta', en:'% reduction in ingestion'},{es:'Costo por millón de series', en:'Cost per million series'}] }
+    ]
+  },
+  {
+    id:'derisk', color:'var(--c-derisk)', colorHex:'#4fb0d9', icon:ICONS.derisk,
+    title:{es:'De-risk Ops — Reducir el Riesgo Operacional', en:'De-risk Ops — Reduce Operational Risk'},
+    sub:{es:'Cómo reducir la exposición operacional, de compliance y de vendor lock-in.', en:'How to reduce operational, compliance and vendor lock-in exposure.'},
+    proof:{es:'LATAM Airlines (multi-cloud AWS + Azure) · Uber (multi-cloud a escala masiva) · Clever Devices (>$200K por evento de SLA) · Paymentology (exit de CRDs propietarios de Datadog)', en:'LATAM Airlines (multi-cloud AWS + Azure) · Uber (multi-cloud at massive scale) · Clever Devices (>$200K per SLA event) · Paymentology (exit from proprietary Datadog CRDs)'},
+    cases:[
+      { id:'derisk-1', name:{es:'Eliminación de vendor lock-in', en:'Elimination of vendor lock-in'}, features:{es:'Estándares abiertos (Prometheus, OpenTelemetry, Loki, Tempo) · Portabilidad de datos · Sin formatos propietarios', en:'Open standards (Prometheus, OpenTelemetry, Loki, Tempo) · Data portability · No proprietary formats'}, desc:{es:'El cliente está atado a un proveedor cuyo roadmap no controla, con formatos propietarios que dificultan migrar o complementar con otras herramientas. Grafana, siendo open source y neutral al vendor, da control total sobre los datos y la arquitectura.', en:'The client is tied to a vendor whose roadmap it doesn\u2019t control, with proprietary formats that make it hard to migrate or complement with other tools. Grafana, being open source and vendor-neutral, gives full control over data and architecture.'}, kpis:[{es:'Nº de fuentes de datos integradas', en:'Number of integrated data sources'},{es:'Flexibilidad de despliegue (cloud/on-prem/hybrid)', en:'Deployment flexibility (cloud/on-prem/hybrid)'},{es:'Riesgo de lock-in (Alto → Bajo)', en:'Lock-in risk (High → Low)'}] },
+      { id:'derisk-2', name:{es:'Soporte multi-cloud e híbrido', en:'Multi-cloud and hybrid support'}, features:{es:'Monitoreo unificado de AWS + Azure + GCP + on-prem + edge desde una sola plataforma', en:'Unified monitoring of AWS + Azure + GCP + on-prem + edge from a single platform'}, desc:{es:'Organizaciones en ambientes multi-cloud o híbridos sufren con herramientas que solo soportan un cloud o no permiten correlación cross-entorno. Grafana ofrece visibilidad unificada sin importar dónde vive la infraestructura.', en:'Organizations in multi-cloud or hybrid environments struggle with tools that only support one cloud or don\u2019t allow cross-environment correlation. Grafana offers unified visibility regardless of where the infrastructure lives.'}, kpis:[{es:'Nº de clouds monitoreadas en una sola vista', en:'Number of clouds monitored in a single view'},{es:'Tiempo de onboarding de nuevo entorno (días)', en:'Onboarding time for a new environment (days)'}] },
+      { id:'derisk-3', name:{es:'Resiliencia ante auditorías y compliance', en:'Resilience for audits and compliance'}, features:{es:'Control sobre retención de datos · Flexibilidad de despliegue en infraestructura propia (incluyendo FedRAMP, air-gapped)', en:'Control over data retention · Deployment flexibility on owned infrastructure (including FedRAMP, air-gapped)'}, desc:{es:'En sectores regulados (finanzas, salud, gobierno), el cliente necesita saber exactamente dónde están sus datos y poder demostrar cumplimiento. Grafana permite despliegues on-prem o en cloud con control total sobre retención y acceso.', en:'In regulated sectors (finance, healthcare, government), the client needs to know exactly where its data lives and be able to demonstrate compliance. Grafana supports on-prem or cloud deployments with full control over retention and access.'}, kpis:[{es:'Tiempo de respuesta a auditorías', en:'Audit response time'},{es:'Nº de mandatos de compliance cumplidos', en:'Number of compliance mandates met'},{es:'SLAs garantizados (Grafana Cloud)', en:'Guaranteed SLAs (Grafana Cloud)'}] },
+      { id:'derisk-4', name:{es:'Continuidad operacional y SLA', en:'Operational continuity and SLA'}, features:{es:'SLOs definidos + error budgets + alertas multi-señal (menos falsos positivos) + IRM integrado', en:'Defined SLOs + error budgets + multi-signal alerting (fewer false positives) + integrated IRM'}, desc:{es:'Sin garantías de SLA operacional, los equipos “corren a ciegas” y los clientes reportan problemas antes de que el equipo los detecte. Grafana Cloud entrega SLAs garantizados, monitoreo proactivo y gestión de errores estructurada.', en:'Without operational SLA guarantees, teams fly blind and customers report problems before the team detects them. Grafana Cloud delivers guaranteed SLAs, proactive monitoring and structured error management.'}, kpis:[{es:'SLO Attainment %', en:'SLO attainment %'},{es:'Nº de incidentes reportados por clientes', en:'Number of incidents reported by customers'},{es:'Tiempo de detección de anomalías', en:'Anomaly detection time'}] }
+    ]
+  },
+  {
+    id:'retention', color:'var(--c-retention)', colorHex:'#6fcf7a', icon:ICONS.retention,
+    title:{es:'Retention — Maximizar la Retención de Clientes', en:'Retention — Maximize Customer Retention'},
+    sub:{es:'Cómo detectar y resolver problemas antes de que el cliente los sienta.', en:'How to catch and resolve problems before the customer feels them.'},
+    proof:{es:'Roblox (99.99% uptime · 70M usuarios activos diarios) · Trade Desk (-60% MTTR) · FloQast (250+ SLOs · -25% tiempo de triage · 70% de journeys críticos cubiertos) · Sheetz ($40K+/incidente evitado)', en:'Roblox (99.99% uptime · 70M daily active users) · Trade Desk (-60% MTTR) · FloQast (250+ SLOs · -25% triage time · 70% of critical journeys covered) · Sheetz ($40K+/incident avoided)'},
+    cases:[
+      { id:'retention-1', name:{es:'Detección proactiva de incidentes', en:'Proactive incident detection'}, features:{es:'Full-stack observability (métricas + logs + trazas + RUM) · Alertas multi-señal · Modelo SAAFE (Saturación, Amend, Anomalía, Fallo, Error)', en:'Full-stack observability (metrics + logs + traces + RUM) · Multi-signal alerting · SAAFE model (Saturation, Amend, Anomaly, Failure, Error)'}, desc:{es:'El equipo se entera de los problemas cuando los usuarios ya los reportan. Con Grafana, las alertas correlacionadas detectan señales de saturación y degradación antes de que el usuario lo experimente.', en:'The team finds out about problems only after users report them. With Grafana, correlated alerts detect saturation and degradation signals before the user experiences them.'}, kpis:[{es:'MTTD — Tiempo medio de detección', en:'MTTD — Mean Time to Detect'},{es:'Nº de incidentes detectados por clientes antes de la plataforma', en:'Number of incidents detected by customers before the platform'},{es:'% incidentes detectados proactivamente', en:'% of incidents detected proactively'}] },
+      { id:'retention-2', name:{es:'SLOs y error budgets', en:'SLOs and error budgets'}, features:{es:'Definición, tracking y alertas sobre Service Level Objectives · Error budgets que guían la priorización del equipo', en:'Definition, tracking and alerting on Service Level Objectives · Error budgets that guide team prioritization'}, desc:{es:'Sin SLOs formales, el equipo no tiene un lenguaje común para comunicar confiabilidad con el negocio. Grafana Cloud SLO permite definir objetivos por servicio, visualizar consumo de error budget y priorizar trabajo de forma basada en datos.', en:'Without formal SLOs, the team has no common language to communicate reliability to the business. Grafana Cloud SLO lets you define objectives per service, visualize error-budget consumption, and prioritize work based on data.'}, kpis:[{es:'SLO Attainment %', en:'SLO attainment %'},{es:'Nº de SLOs definidos sobre servicios críticos', en:'Number of SLOs defined on critical services'},{es:'% journeys críticos cubiertos por SLOs', en:'% of critical journeys covered by SLOs'}] },
+      { id:'retention-3', name:{es:'Frontend + Full-stack visibility (RUM)', en:'Frontend + full-stack visibility (RUM)'}, features:{es:'Real User Monitoring (Faro) · Core Web Vitals · Trazas end-to-end frontend → backend', en:'Real User Monitoring (Faro) · Core Web Vitals · End-to-end frontend → backend traces'}, desc:{es:'El equipo tiene buena visibilidad de backend pero no sabe cómo experimenta el producto el usuario real. Frontend Observability (Faro) complementa métricas de infraestructura con señales del browser y enlaza con trazas de backend.', en:'The team has good backend visibility but doesn\u2019t know how the real user experiences the product. Frontend Observability (Faro) complements infrastructure metrics with browser signals and links to backend traces.'}, kpis:[{es:'Core Web Vitals p75 LCP (s)', en:'Core Web Vitals p75 LCP (s)'},{es:'% sesiones con errores JS', en:'% of sessions with JS errors'},{es:'Tiempo de carga por región', en:'Load time by region'}] },
+      { id:'retention-4', name:{es:'Reducción de MTTR', en:'MTTR reduction'}, features:{es:'Correlación de señales en una sola vista · Knowledge Graph (topología de servicios) · Distributed Tracing (Tempo)', en:'Signal correlation in a single view · Knowledge Graph (service topology) · Distributed Tracing (Tempo)'}, desc:{es:'Los equipos pierden tiempo cambiando entre herramientas durante un incidente. Grafana unifica métricas, logs y trazas en una sola pantalla, permitiendo a cualquier ingeniero seguir el hilo de un problema de extremo a extremo sin ser el “experto de turno”.', en:'Teams lose time switching between tools during an incident. Grafana unifies metrics, logs and traces in a single screen, letting any engineer follow a problem end-to-end without being the on-call expert.'}, kpis:[{es:'MTTR — Tiempo medio de resolución', en:'MTTR — Mean Time to Resolution'},{es:'Tiempo promedio de diagnóstico', en:'Average diagnosis time'},{es:'Nº de escalaciones por incidente', en:'Number of escalations per incident'}] }
+    ]
+  },
+  {
+    id:'ttm', color:'var(--c-ttm)', colorHex:'#b58af2', icon:ICONS.ttm,
+    title:{es:'Time to Market — Acelerar el Tiempo de Entrega', en:'Time to Market — Accelerate Delivery Speed'},
+    sub:{es:'Cómo entregar software más rápido sin perder confiabilidad.', en:'How to ship software faster without losing reliability.'},
+    proof:{es:'Delivery Hero (+3x frecuencia de despliegue) · Trade Desk (90% de necesidades resueltas en self-service) · CTW (aprovisionamiento de observabilidad: días → segundos, observability-as-code)', en:'Delivery Hero (+3x deployment frequency) · Trade Desk (90% of needs resolved via self-service) · CTW (observability provisioning: days → seconds, observability-as-code)'},
+    cases:[
+      { id:'ttm-1', name:{es:'Observabilidad en CI/CD', en:'Observability in CI/CD'}, features:{es:'Integración con pipelines de despliegue · Validación de despliegue basada en SLOs · Canary / blue-green con rollback automático', en:'Integration with deployment pipelines · SLO-based deployment validation · Canary / blue-green with automatic rollback'}, desc:{es:'El miedo a romper producción frena la frecuencia de releases. Con Grafana integrado en el pipeline, los equipos validan automáticamente el comportamiento del nuevo código contra los SLOs y toman decisiones de rollback en segundos.', en:'Fear of breaking production slows release frequency. With Grafana integrated into the pipeline, teams automatically validate new code behavior against SLOs and make rollback decisions in seconds.'}, kpis:[{es:'Deployment frequency (deploys/semana)', en:'Deployment frequency (deploys/week)'},{es:'Change failure rate %', en:'Change failure rate %'},{es:'Tiempo de detección post-deploy', en:'Post-deploy detection time'}] },
+      { id:'ttm-2', name:{es:'Performance testing (k6)', en:'Performance testing (k6)'}, features:{es:'Load testing pre-producción integrado en Grafana Cloud · Benchmarks de rendimiento por release', en:'Pre-production load testing integrated into Grafana Cloud · Performance benchmarks per release'}, desc:{es:'Sin carga de prueba, los equipos descubren problemas de rendimiento cuando ya están en producción con clientes reales. k6, integrado nativamente en Grafana Cloud, permite validar cada build contra umbrales de rendimiento definidos.', en:'Without load testing, teams discover performance problems only once they\u2019re live with real customers. k6, natively integrated into Grafana Cloud, validates every build against defined performance thresholds.'}, kpis:[{es:'Nº de regresiones de performance detectadas antes de producción', en:'Number of performance regressions caught before production'},{es:'Tiempo promedio de test de carga', en:'Average load-test time'},{es:'% builds que pasan threshold de performance', en:'% of builds passing the performance threshold'}] },
+      { id:'ttm-3', name:{es:'Self-service para developers', en:'Self-service for developers'}, features:{es:'Dashboards y alertas sin dependencia del equipo de plataforma · Templates pre-construidos por stack (Kubernetes, AWS, etc.)', en:'Dashboards and alerts with no dependency on the platform team · Pre-built templates by stack (Kubernetes, AWS, etc.)'}, desc:{es:'Los developers dependen del equipo de SRE/platform para tener visibilidad de sus servicios, creando cuellos de botella. Con Grafana, cada equipo puede crear, explorar y alertar sobre sus propios servicios sin tickets.', en:'Developers depend on the SRE/platform team for visibility into their own services, creating bottlenecks. With Grafana, every team can create, explore and alert on their own services without filing tickets.'}, kpis:[{es:'% de necesidades de observabilidad cubiertas en self-service', en:'% of observability needs covered via self-service'},{es:'Tiempo para crear un nuevo dashboard (hrs)', en:'Time to create a new dashboard (hrs)'},{es:'Satisfacción del developer (DORA score)', en:'Developer satisfaction (DORA score)'}] },
+      { id:'ttm-4', name:{es:'Continuous Profiling para optimización proactiva', en:'Continuous Profiling for proactive optimization'}, features:{es:'Pyroscope integrado · Identificación de hotspots de CPU/memoria en código en ejecución · Sin overhead de instrumentación manual', en:'Integrated Pyroscope · Identifies CPU/memory hotspots in running code · No manual instrumentation overhead'}, desc:{es:'Los equipos solo descubren ineficiencias de código en producción, cuando ya impactan al usuario. Continuous Profiling permite identificar funciones costosas en cualquier momento, incluso en producción, sin instrumentación adicional.', en:'Teams only discover code inefficiencies in production, once they already impact the user. Continuous Profiling identifies expensive functions at any time, even in production, with no additional instrumentation.'}, kpis:[{es:'Tiempo de diagnóstico de regresión de performance', en:'Performance regression diagnosis time'},{es:'Nº de hotspots identificados pre-producción', en:'Number of hotspots identified pre-production'},{es:'% reducción en latencia p99 tras optimización', en:'% reduction in p99 latency after optimization'}] }
+    ]
+  }
+];
+
+/* =========================================================
+   ENGAGEMENT CATALOG DATA
+   ========================================================= */
+const ENGAGEMENTS = {
+  'success-planning': { id:'success-planning', foundational:true, status:'live', name:{es:'Success Planning', en:'Success Planning'},
+    desc:{es:'Define los objetivos centrales del cliente para alinear el uso de Grafana con sus metas de negocio y técnicas. Es obligatorio para todas las cuentas con OA nombrado (FY27) y debe completarse primero, antes de cualquier otro engagement.', en:'Defines the client\u2019s core objectives to align Grafana usage with their business and technical goals. Mandatory for all accounts with a named OA (FY27) and must be completed first, before any other engagement.'},
+    deliverables:{es:['Success Plan document (objetivos, KPIs, milestones)','Mapa de stakeholders','Definición de Value Drivers prioritarios','Cadencia de seguimiento acordada'], en:['Success Plan document (objectives, KPIs, milestones)','Stakeholder map','Definition of priority Value Drivers','Agreed follow-up cadence']},
+    time:{es:'2–4 semanas (borrador inicial en primeros 30 días; documento vivo durante todo el ciclo)', en:'2–4 weeks (initial draft within the first 30 days; living document throughout the engagement)'}
+  },
+  'maturity-assessment': { id:'maturity-assessment', foundational:true, status:'live', name:{es:'Maturity Assessment', en:'Maturity Assessment'},
+    desc:{es:'Evalúa el estado actual del cliente contra 9 dimensiones de madurez observability, recopila evidencia, genera un score y produce un plan de mejora priorizado a 90 días. Guía el nivel técnico de arranque y los engagements subsecuentes.', en:'Assesses the client\u2019s current state against 9 observability maturity dimensions, gathers evidence, produces a score, and delivers a prioritized 90-day improvement plan. Guides the technical starting point and subsequent engagements.'},
+    deliverables:{es:['Score por dimensión (1–5)','Informe de estado actual con brechas identificadas','Plan de mejora priorizado a 90 días','Recomendación de engagements siguientes'], en:['Score per dimension (1–5)','Current-state report with identified gaps','Prioritized 90-day improvement plan','Recommendation of next engagements']},
+    time:{es:'2–3 semanas (discovery + scoring + presentación de resultados)', en:'2–3 weeks (discovery + scoring + results presentation)'}
+  },
+  'cloud-health-check': { id:'cloud-health-check', foundational:false, status:'live', name:{es:'Cloud Health Check', en:'Cloud Health Check'},
+    desc:{es:'Revisión proactiva y orientada al cliente del estado actual del deployment de Grafana Cloud: uso, rendimiento, configuración, seguridad y alineación a best practices. Proporciona insights y recomendaciones para optimizar el entorno.', en:'Proactive, client-facing review of the current state of the Grafana Cloud deployment: usage, performance, configuration, security, and alignment to best practices. Delivers insights and recommendations to optimize the environment.'},
+    deliverables:{es:['Reporte de salud del entorno (uso, configs, alertas)','Lista priorizada de recomendaciones','Identificación de quick wins','Trigger para Cost Optimization si aplica'], en:['Environment health report (usage, configs, alerts)','Prioritized list of recommendations','Identification of quick wins','Trigger for Cost Optimization if applicable']},
+    time:{es:'1–2 semanas', en:'1–2 weeks'}
+  },
+  'telemetry-management': { id:'telemetry-management', foundational:false, status:'live', name:{es:'Telemetry Management', en:'Telemetry Management'},
+    desc:{es:'Establece y expande la instrumentación a través de apps, infraestructura y user journeys. Estandariza en OpenTelemetry/Alloy, normaliza labels. Diseña y despliega la topología de collectors con routing, sampling y transforms para unificar la ingesta de métricas/logs/trazas.', en:'Establishes and expands instrumentation across apps, infrastructure, and user journeys. Standardizes on OpenTelemetry/Alloy and normalizes labels. Designs and deploys the collector topology with routing, sampling, and transforms to unify metrics/logs/traces ingestion.'},
+    deliverables:{es:['Diseño de arquitectura de colección de telemetría','Label taxonomy & naming standards','Topología de collectors documentada','Configuración de Alloy/OTel en producción','Estrategia de sampling'], en:['Telemetry collection architecture design','Label taxonomy & naming standards','Documented collector topology','Production Alloy/OTel configuration','Sampling strategy']},
+    time:{es:'4–8 semanas (diseño 1–2 sem, implementación 3–6 sem)', en:'4–8 weeks (design 1–2 wks, implementation 3–6 wks)'}
+  },
+  'coe': { id:'coe', foundational:false, status:'live', name:{es:'Observability Center of Excellence (CoE)', en:'Observability Center of Excellence (CoE)'},
+    desc:{es:'Establece una práctica central de observabilidad con gobernanza, estándares y champions para unificar dashboards, alertas y SLOs entre equipos, entender el valor vs. costo de los datos, y acelerar adopción y madurez. El CoE es un framework flexible según tamaño y madurez de la organización.', en:'Establishes a central observability practice with governance, standards, and champions to unify dashboards, alerts, and SLOs across teams, understand the value vs. cost of data, and accelerate adoption and maturity. The CoE is a flexible framework based on the organization\u2019s size and maturity.'},
+    deliverables:{es:['Framework de gobernanza de observabilidad','Charter del CoE con roles y responsabilidades','Estándares de dashboards, alertas y SLOs documentados','Red de champions definida','Proceso de onboarding de nuevos equipos'], en:['Observability governance framework','CoE charter with roles and responsibilities','Documented dashboard, alerting, and SLO standards','Defined champions network','New-team onboarding process']},
+    time:{es:'6–12 semanas (framework inicial 2–3 sem; institucionalización 2–3 meses)', en:'6–12 weeks (initial framework 2–3 wks; institutionalization 2–3 months)'}
+  },
+  'slo-best-practice': { id:'slo-best-practice', foundational:false, status:'live', name:{es:'SLO Best Practice', en:'SLO Best Practice'},
+    desc:{es:'Define SLIs/SLOs para los journeys clave del cliente, configura error budgets, construye SLO dashboards y conecta alertas a los budgets para alinear la confiabilidad con el impacto al usuario. Regla de oro: 3–5 SLOs por servicio.', en:'Defines SLIs/SLOs for the client\u2019s key journeys, configures error budgets, builds SLO dashboards, and connects alerts to the budgets to align reliability with user impact. Rule of thumb: 3–5 SLOs per service.'},
+    deliverables:{es:['SLOs definidos para servicios críticos (SLI + objetivo + ventana)','Error budgets configurados','SLO dashboards en Grafana','Alertas de burn rate activas','SLO maturity score','Cadencia de SLO review acordada'], en:['SLOs defined for critical services (SLI + target + window)','Configured error budgets','SLO dashboards in Grafana','Active burn-rate alerts','SLO maturity score','Agreed SLO review cadence']},
+    time:{es:'3–6 semanas (workshop 1 sem; implementación 2–4 sem; review ongoing)', en:'3–6 weeks (workshop 1 wk; implementation 2–4 wks; ongoing review)'}
+  },
+  'alerting-best-practices': { id:'alerting-best-practices', foundational:false, status:'live', name:{es:'Alerting Best Practices', en:'Alerting Best Practices'},
+    desc:{es:'Define best practices para enriquecer alertas con contexto y reducir MTTA/MTTR, disminuir el ruido operacional, garantizar actionability y estandarizar las notificaciones.', en:'Defines best practices to enrich alerts with context and reduce MTTA/MTTR, cut operational noise, ensure actionability, and standardize notifications.'},
+    deliverables:{es:['Estrategia de alertas documentada','Políticas de notificación configuradas','Reducción de falsos positivos medida','Templates de alertas enriquecidas con contexto'], en:['Documented alerting strategy','Configured notification policies','Measured reduction in false positives','Context-enriched alert templates']},
+    time:{es:'2–4 semanas', en:'2–4 weeks'}
+  },
+  'incident-management': { id:'incident-management', foundational:false, status:'planned', name:{es:'Incident Management', en:'Incident Management'},
+    desc:{es:'Creación de runbooks, flujo de incident command, post-incident reviews e integraciones de herramientas para una respuesta estructurada y eficiente.', en:'Creation of runbooks, incident command flow, post-incident reviews, and tool integrations for a structured, efficient response.'},
+    deliverables:{es:['Runbooks por tipo de incidente','Flujo de incident command documentado','Proceso de post-incident review','Integración con IRM/Grafana Incident'], en:['Runbooks by incident type','Documented incident command flow','Post-incident review process','Integration with IRM/Grafana Incident']},
+    time:{es:'4–6 semanas', en:'4–6 weeks'}
+  },
+  'security-access-control': { id:'security-access-control', foundational:false, status:'planned', name:{es:'Security & Access Control', en:'Security & Access Control'},
+    desc:{es:'Implementa RBAC/SSO para Grafana y data sources, límites de tenant, gestión de secrets y audit trails para garantizar acceso seguro a los datos.', en:'Implements RBAC/SSO for Grafana and data sources, tenant limits, secrets management, and audit trails to ensure secure data access.'},
+    deliverables:{es:['Arquitectura de RBAC/LBAC definida','SSO configurado','Políticas de acceso por tenant','Audit trails habilitados','Documentación de modelo de seguridad'], en:['Defined RBAC/LBAC architecture','Configured SSO','Per-tenant access policies','Enabled audit trails','Security model documentation']},
+    time:{es:'2–4 semanas', en:'2–4 weeks'}
+  },
+  'ai-best-practices': { id:'ai-best-practices', foundational:false, status:'live', name:{es:'AI Best Practices', en:'AI Best Practices'},
+    desc:{es:'Cómo usar Grafana Assistant de forma efectiva en el entorno del cliente para ganar claridad, acelerar troubleshooting e investigaciones de incidentes.', en:'How to use Grafana Assistant effectively in the client\u2019s environment to gain clarity and speed up troubleshooting and incident investigations.'},
+    deliverables:{es:['Guía de uso de Grafana Assistant','Sesiones de enablement por equipo','Casos de uso documentados (triage, RCA, SLO queries)'], en:['Grafana Assistant usage guide','Per-team enablement sessions','Documented use cases (triage, RCA, SLO queries)']},
+    time:{es:'1–3 semanas (sesión principal + seguimiento)', en:'1–3 weeks (main session + follow-up)'}
+  },
+  'grafana-days': { id:'grafana-days', foundational:false, status:'planned', name:{es:'Grafana Days', en:'Grafana Days'},
+    desc:{es:'Sesiones interactivas de día completo personalizadas para impulsar enablement amplio o enfocarse en tópicos clave relevantes al customer journey.', en:'Personalized, full-day interactive sessions to drive broad enablement or focus on key topics relevant to the customer journey.'},
+    deliverables:{es:['Agenda del día personalizada','Materiales y demos preparados','Hands-on labs','Recording de la sesión','Feedback / evaluación post-evento'], en:['Personalized day agenda','Prepared materials and demos','Hands-on labs','Session recording','Post-event feedback / evaluation']},
+    time:{es:'1 día de evento (2–3 semanas de preparación)', en:'1-day event (2–3 weeks of preparation)'}
+  },
+  'cost-optimization': { id:'cost-optimization', foundational:false, status:'live', name:{es:'Cost Optimization', en:'Cost Optimization'},
+    desc:{es:'3 fases: (1) Consumption Review — health check, dashboards de cardinality/billing, revisión de Adaptive Telemetry. (2) Execution — reducción de DPM, cardinality management, implementación de Adaptive Metrics/Logs/Traces, cost attributions, alertas de presupuesto. (3) Ongoing — reporte post-engagement, actualización del Success Plan.', en:'3 phases: (1) Consumption Review — health check, cardinality/billing dashboards, Adaptive Telemetry review. (2) Execution — DPM reduction, cardinality management, Adaptive Metrics/Logs/Traces implementation, cost attribution, budget alerts. (3) Ongoing — post-engagement report, Success Plan update.'},
+    deliverables:{es:['Reporte de consumo actual vs. optimizado','Reglas de Adaptive Metrics/Telemetry implementadas','Cost attribution por equipo/servicio','Alertas de ingest y presupuesto configuradas','Reporte post-engagement con savings documentados'], en:['Current vs. optimized consumption report','Implemented Adaptive Metrics/Telemetry rules','Cost attribution by team/service','Configured ingest and budget alerts','Post-engagement report with documented savings']},
+    time:{es:'4–8 semanas (fase 1: 1 sem; fase 2: 2–5 sem; fase 3: ongoing)', en:'4–8 weeks (phase 1: 1 wk; phase 2: 2–5 wks; phase 3: ongoing)'}
+  },
+  'ebr': { id:'ebr', foundational:false, status:'live_improving', name:{es:'Executive Business Review (EBR)', en:'Executive Business Review (EBR)'},
+    desc:{es:'Readout trimestral ejecutivo que conecta confiabilidad con outcomes de negocio: tendencias de SLOs, impacto de incidentes en revenue/experiencia y ROI del trabajo de observabilidad. Audiencia: Executive Sponsors y liderazgo senior.', en:'Quarterly executive readout connecting reliability to business outcomes: SLO trends, incident impact on revenue/experience, and ROI of observability work. Audience: Executive Sponsors and senior leadership.'},
+    deliverables:{es:['Deck ejecutivo de EBR','Resumen de SLO attainment del trimestre','Impacto de incidentes en $ y experiencia','ROI de inversión en observabilidad','Roadmap de próximos 90 días'], en:['Executive EBR deck','Quarterly SLO attainment summary','Incident impact in $ and experience','Observability investment ROI','Next-90-days roadmap']},
+    time:{es:'1–2 semanas prep + 1 sesión (trimestral)', en:'1–2 weeks prep + 1 session (quarterly)'}
+  },
+  'whitespace-opportunities': { id:'whitespace-opportunities', foundational:false, status:'planned', name:{es:'Whitespace Opportunities', en:'Whitespace Opportunities'},
+    desc:{es:'Posiciona capacidades nuevas basado en lo que el cliente está o no está consumiendo. Ejecuta plays promovidos para que el cliente conozca adiciones al catálogo o nuevos casos de uso.', en:'Positions new capabilities based on what the client is or isn\u2019t consuming. Runs promoted plays so the client learns about catalog additions or new use cases.'},
+    deliverables:{es:['Mapa de consumo actual vs. capacidades disponibles','Recomendación priorizada de gaps de adopción','Hipótesis de expansión documentadas'], en:['Current consumption vs. available capabilities map','Prioritized adoption-gap recommendation','Documented expansion hypotheses']},
+    time:{es:'1–2 semanas (análisis + sesión de descubrimiento)', en:'1–2 weeks (analysis + discovery session)'}
+  },
+  'roadmap-review': { id:'roadmap-review', foundational:false, status:'planned', name:{es:'Roadmap Review', en:'Roadmap Review'},
+    desc:{es:'Preparación y entrega de una presentación sobre el roadmap de producto de Grafana, alineando las capacidades próximas a los planes y casos de uso del cliente.', en:'Preparation and delivery of a presentation on Grafana\u2019s product roadmap, aligning upcoming capabilities with the client\u2019s plans and use cases.'},
+    deliverables:{es:['Presentación de roadmap personalizada','Mapa de capacidades próximas vs. necesidades del cliente','Plan de habilitación temprana (betas/previews)'], en:['Personalized roadmap presentation','Upcoming capabilities vs. client needs map','Early-enablement plan (betas/previews)']},
+    time:{es:'1–2 semanas prep + 1 sesión (semestral/anual)', en:'1–2 weeks prep + 1 session (biannual/annual)'}
+  },
+  'ai-optimization': { id:'ai-optimization', foundational:false, status:'planned', name:{es:'AI Optimization', en:'AI Optimization'},
+    desc:{es:'Implementa detección de anomalías y hints de runbook asistidos por LLM para acelerar el triage; captura aprendizajes de incidentes para generar nuevas señales de observabilidad.', en:'Implements LLM-assisted anomaly detection and runbook hints to speed up triage; captures incident learnings to generate new observability signals.'},
+    deliverables:{es:['Anomaly detection configurada','Runbook hints integrados con Grafana Assistant','Proceso de harvest de learnings post-incidente documentado'], en:['Configured anomaly detection','Runbook hints integrated with Grafana Assistant','Documented post-incident learnings harvest process']},
+    time:{es:'4–6 semanas', en:'4–6 weeks'}
+  },
+  'new-feature-review': { id:'new-feature-review', foundational:false, status:'planned', name:{es:'New Feature Review', en:'New Feature Review'},
+    desc:{es:'Valida el readiness de observabilidad para features de GA que el cliente puede no estar usando, incluyendo métricas, logs, trazas, dashboards, SLOs y criterios de rollback.', en:'Validates observability readiness for GA features the client may not be using yet, including metrics, logs, traces, dashboards, SLOs, and rollback criteria.'},
+    deliverables:{es:['Lista de features GA evaluadas vs. adopción del cliente','Plan de activación por feature','Criterios de rollback definidos'], en:['List of GA features evaluated vs. client adoption','Per-feature activation plan','Defined rollback criteria']},
+    time:{es:'1–2 semanas', en:'1–2 weeks'}
+  },
+  'escalations': { id:'escalations', foundational:false, status:null, name:{es:'Escalations — Critical Care', en:'Escalations — Critical Care'},
+    desc:{es:'El OA actúa como quarterback en escalaciones mayores entre Support, Engineering y el cliente, siendo una cara familiar en momentos de crisis.', en:'The OA acts as quarterback in major escalations between Support, Engineering, and the client, being a familiar face in moments of crisis.'},
+    deliverables:{es:['Plan de gestión del escalation','Comunicación estructurada con el cliente','Post-mortem y lecciones aprendidas'], en:['Escalation management plan','Structured client communication','Post-mortem and lessons learned']},
+    time:{es:'Reactivo — duración según severidad (horas a semanas)', en:'Reactive — duration depends on severity (hours to weeks)'}
+  },
+  'grafana-events': { id:'grafana-events', foundational:false, status:null, name:{es:'Grafana Events', en:'Grafana Events'},
+    desc:{es:'Planificación y ejecución de días de enablement con stakeholders del cliente: presentación de casos de uso, hackdays o participación en eventos de Observability (ObsCON, GrafanaCON, etc.).', en:'Planning and execution of enablement days with client stakeholders: use-case presentations, hackdays, or participation in Observability events (ObsCON, GrafanaCON, etc.).'},
+    deliverables:{es:['Agenda del evento','Materiales presentados','Lista de attendees y seguimiento post-evento'], en:['Event agenda','Presented materials','Attendee list and post-event follow-up']},
+    time:{es:'Planificación 2–4 semanas + duración del evento', en:'2–4 weeks planning + event duration'}
+  }
+};
+
+const PHASES = [
+  { id:'p1', icon:ICONS.p1, title:{es:'Fase 1 — Planning & Assessment', en:'Phase 1 — Planning & Assessment'}, engIds:['success-planning','maturity-assessment','cloud-health-check'] },
+  { id:'p2', icon:ICONS.p2, title:{es:'Fase 2 — Adoption', en:'Phase 2 — Adoption'}, engIds:['telemetry-management','coe'] },
+  { id:'p3', icon:ICONS.p3, title:{es:'Fase 3 — Enablement', en:'Phase 3 — Enablement'}, engIds:['slo-best-practice','alerting-best-practices','incident-management','security-access-control','ai-best-practices','grafana-days'] },
+  { id:'p4', icon:ICONS.p4, title:{es:'Fase 4 — Growth & Value Realization', en:'Phase 4 — Growth & Value Realization'}, engIds:['cost-optimization','ebr','whitespace-opportunities','roadmap-review','ai-optimization','new-feature-review'] },
+  { id:'tactical', icon:ICONS.tactical, title:{es:'Engagements Tácticos (todas las fases)', en:'Tactical Engagements (all phases)'}, engIds:['escalations','grafana-events'] }
+];
+
+const STATUS_LABELS = {
+  live:{es:'Live', en:'Live'},
+  dev:{es:'En desarrollo', en:'In development'},
+  planned:{es:'Planeado', en:'Planned'},
+  live_improving:{es:'Live (mejorando)', en:'Live (improving)'}
+};
+const STATUS_BADGE_CLASS = { live:'badge-live', dev:'badge-dev', planned:'badge-planned', live_improving:'badge-live' };
+
+/* correlation: value-driver use case id -> array of engagement ids it feeds */
+const MAPPING = {
+  'tco-1':['whitespace-opportunities','cloud-health-check','coe'],
+  'tco-2':['cloud-health-check','telemetry-management'],
+  'tco-3':['cost-optimization','cloud-health-check'],
+  'tco-4':['cost-optimization','telemetry-management'],
+  'derisk-1':['telemetry-management','roadmap-review'],
+  'derisk-2':['telemetry-management','cloud-health-check','coe'],
+  'derisk-3':['security-access-control'],
+  'derisk-4':['slo-best-practice','incident-management','alerting-best-practices'],
+  'retention-1':['alerting-best-practices','slo-best-practice','incident-management','ai-best-practices'],
+  'retention-2':['slo-best-practice','ebr'],
+  'retention-3':['telemetry-management','new-feature-review'],
+  'retention-4':['incident-management','alerting-best-practices','ai-optimization'],
+  'ttm-1':['slo-best-practice','incident-management','new-feature-review'],
+  'ttm-2':['new-feature-review'],
+  'ttm-3':['coe'],
+  'ttm-4':['cost-optimization','ai-optimization']
+};
+const PRIORITY_WEIGHT = { alta:3, media:2, baja:1 };
+
+function findCase(caseId){
+  for(const cat of DATA){ const cs = cat.cases.find(c => c.id === caseId); if(cs) return { cat, cs }; }
+  return null;
+}
+function findEngagement(id){ return ENGAGEMENTS[id]; }
+function findPhaseOf(engId){ return PHASES.find(p => p.engIds.includes(engId)); }
+
+/* =========================================================
+   STRINGS
+   ========================================================= */
+const STR = {
+  es:{
+    appTitle:'Value Drivers & Engagement Roadmap', appSub:'Correlaciona tus prioridades de negocio con el roadmap de engagements',
+    client:'Cliente / Cuenta', clientPh:'Nombre del cliente', contact:'Contacto principal', contactPh:'Nombre del contacto',
+    prepared:'Preparado por', date:'Fecha',
+    navDrivers:'1 · Value Drivers', navEngagements:'2 · Engagements recomendados',
+    interested:'Nos interesa resolver esto en los próximos 12 meses',
+    priorityQ:'¿Qué prioridad tiene?', priorityAlta:'Alta', priorityMedia:'Media', priorityBaja:'Baja',
+    kpisLabel:'KPIs que queremos monitorear', notesLabel:'Notas / contexto (opcional)', notesPh:'Ej. dueño interno, fecha objetivo, sistema afectado…',
+    proofLabel:'Casos de referencia', empty:'Aún no has seleccionado casos de uso en esta categoría.',
+    of:'de',
+    engHeading:'Roadmap de engagements recomendado', engSub:'Así se prioriza el trabajo con tu Observability Architect, según lo que seleccionaste en Value Drivers.',
+    recTitle:'⭐ Recomendados según tus Value Drivers', recWhy:'Recomendado por:',
+    recEmpty:'Selecciona casos de uso en “1 · Value Drivers” para generar recomendaciones personalizadas. Mientras tanto, explora el catálogo completo abajo.',
+    foundTitle:'🔹 Fundamento — obligatorio antes de cualquier otro engagement', foundText:'Success Planning y Maturity Assessment son la base de cualquier cuenta con OA nombrado. Vienen pre-seleccionados; desmárcalos si ya se completaron.',
+    catalogTitle:'Catálogo completo de engagements', catalogHint:'Selecciona cualquier engagement, sin importar la recomendación — tú tienes el control final.',
+    deliverablesLabel:'Entregables recomendados', estTimeLabel:'Tiempo estimado',
+    tagFoundational:'Fundamento', tagRecommended:'Recomendado', phaseOf:'de',
+    summaryTitle:'Resumen de la sesión', summaryDrivers:'value drivers seleccionados', summaryEng:'engagements seleccionados', kpiTotal:'KPIs confirmados',
+    exportPdf:'Descargar PDF', exportMd:'Descargar Markdown', exportHint:'Genera un reporte con value drivers, KPIs y el roadmap de engagements.',
+    reset:'Reiniciar todo', resetConfirm:'¿Reiniciar toda la sesión (value drivers y engagements)? Esto no se puede deshacer.',
+    ctaToEngagements:'Ver engagements recomendados →', ctaToDrivers:'← Volver a Value Drivers',
+    footer:'Herramienta interna de Grafana Labs para talleres de alineación de value drivers y engagements.', autosaved:'Progreso guardado en este navegador'
+  },
+  en:{
+    appTitle:'Value Drivers & Engagement Roadmap', appSub:'Correlate your business priorities with the engagement roadmap',
+    client:'Client / Account', clientPh:'Client name', contact:'Main contact', contactPh:'Contact name',
+    prepared:'Prepared by', date:'Date',
+    navDrivers:'1 · Value Drivers', navEngagements:'2 · Recommended Engagements',
+    interested:'We want to address this in the next 12 months',
+    priorityQ:'How high is the priority?', priorityAlta:'High', priorityMedia:'Medium', priorityBaja:'Low',
+    kpisLabel:'KPIs we want to track', notesLabel:'Notes / context (optional)', notesPh:'E.g. internal owner, target date, affected system…',
+    proofLabel:'Reference cases', empty:'You haven\u2019t selected any use cases in this category yet.',
+    of:'of',
+    engHeading:'Recommended engagement roadmap', engSub:'This is how the work with your Observability Architect gets prioritized, based on what you selected in Value Drivers.',
+    recTitle:'⭐ Recommended based on your Value Drivers', recWhy:'Recommended because of:',
+    recEmpty:'Select use cases in “1 · Value Drivers” to generate personalized recommendations. Meanwhile, browse the full catalog below.',
+    foundTitle:'🔹 Foundation — required before any other engagement', foundText:'Success Planning and Maturity Assessment are the baseline for any account with a named OA. They come pre-selected; uncheck them if already completed.',
+    catalogTitle:'Full engagement catalog', catalogHint:'Select any engagement, regardless of the recommendation — you have the final say.',
+    deliverablesLabel:'Recommended deliverables', estTimeLabel:'Estimated time',
+    tagFoundational:'Foundation', tagRecommended:'Recommended', phaseOf:'of',
+    summaryTitle:'Session summary', summaryDrivers:'value drivers selected', summaryEng:'engagements selected', kpiTotal:'KPIs confirmed',
+    exportPdf:'Download PDF', exportMd:'Download Markdown', exportHint:'Generates a report with value drivers, KPIs and the engagement roadmap.',
+    reset:'Reset everything', resetConfirm:'Reset the entire session (value drivers and engagements)? This cannot be undone.',
+    ctaToEngagements:'View recommended engagements →', ctaToDrivers:'← Back to Value Drivers',
+    footer:'Internal Grafana Labs tool for value-driver and engagement alignment workshops.', autosaved:'Progress saved in this browser'
+  }
+};
+
+/* =========================================================
+   STATE
+   ========================================================= */
+const STORAGE_KEY = 'gf_workshop_drivers_engagements_v1';
+let STATE = {
+  lang:'es', view:'drivers', activeCat: DATA[0].id,
+  client:'', contact:'', preparedBy:'Rodrigo Flores — Principal Observability Architect, Grafana Labs', date:new Date().toISOString().slice(0,10),
+  selections:{}, engagementSelections:{}
+};
+function loadState(){
+  try{ const raw = localStorage.getItem(STORAGE_KEY); if(raw){ STATE = Object.assign(STATE, JSON.parse(raw)); } }catch(e){}
+}
+function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE)); }catch(e){} }
+function getSel(caseId){ if(!STATE.selections[caseId]) STATE.selections[caseId] = { selected:false, priority:null, kpis:{}, notes:'' }; return STATE.selections[caseId]; }
+
+loadState();
+
+function onChromeInput(key, value){ STATE[key] = value; saveState(); }
+
+function setLang(lang){ STATE.lang = lang; saveState(); renderChrome(); render(); }
+function setView(view){ STATE.view = view; render(); }
+function setActiveCat(id){ STATE.activeCat = id; render(); }
+
+function toggleCase(caseId){
+  const sel = getSel(caseId);
+  sel.selected = !sel.selected;
+  if(sel.selected && !sel.priority) sel.priority = 'media';
+  if(sel.selected){
+    const found = findCase(caseId);
+    found.cs.kpis.forEach((_, i) => { if(sel.kpis[i] === undefined) sel.kpis[i] = true; });
+  }
+  saveState(); render();
+}
+function setPriority(caseId, priority){ getSel(caseId).priority = priority; saveState(); render(); }
+function toggleKpi(caseId, idx){ const sel = getSel(caseId); sel.kpis[idx] = !sel.kpis[idx]; saveState(); render(); }
+function onNotesInput(caseId, value){ getSel(caseId).notes = value; saveState(); }
+
+function isFoundational(engId){ const e = ENGAGEMENTS[engId]; return !!(e && e.foundational); }
+function isEngagementChecked(engId){
+  if(STATE.engagementSelections[engId] !== undefined) return STATE.engagementSelections[engId];
+  return isFoundational(engId) || computeTop3().includes(engId);
+}
+function toggleEngagement(engId){
+  STATE.engagementSelections[engId] = !isEngagementChecked(engId);
+  saveState(); render();
+}
+
+function resetAll(){
+  const t = STR[STATE.lang];
+  if(!confirm(t.resetConfirm)) return;
+  STATE.selections = {}; STATE.engagementSelections = {};
+  saveState(); render();
+}
+
+/* =========================================================
+   COMPUTED HELPERS
+   ========================================================= */
+function countSelectedInCat(cat){ return cat.cases.filter(cs => getSel(cs.id).selected).length; }
+function totalSelectedDrivers(){ return DATA.reduce((s,c) => s + countSelectedInCat(c), 0); }
+function totalCases(){ return DATA.reduce((s,c) => s + c.cases.length, 0); }
+function totalKpisConfirmed(){
+  let n = 0;
+  DATA.forEach(cat => cat.cases.forEach(cs => { const sel = STATE.selections[cs.id]; if(sel && sel.selected){ cs.kpis.forEach((_,i) => { if(sel.kpis[i]) n++; }); } }));
+  return n;
+}
+function anyDriverSelected(){ return DATA.some(cat => cat.cases.some(cs => getSel(cs.id).selected)); }
+
+function computeEngagementScores(){
+  const scores = {};
+  DATA.forEach(cat => cat.cases.forEach(cs => {
+    const sel = STATE.selections[cs.id];
+    if(sel && sel.selected){
+      const w = PRIORITY_WEIGHT[sel.priority] || 2;
+      (MAPPING[cs.id] || []).forEach(engId => { scores[engId] = (scores[engId] || 0) + w; });
+    }
+  }));
+  return scores;
+}
+function computeTop3(){
+  const scores = computeEngagementScores();
+  return Object.entries(scores).filter(([,v]) => v > 0).sort((a,b) => b[1]-a[1]).slice(0,3).map(([id]) => id);
+}
+function computeRationale(engId){
+  const items = [];
+  DATA.forEach(cat => cat.cases.forEach(cs => {
+    const sel = STATE.selections[cs.id];
+    if(sel && sel.selected && (MAPPING[cs.id] || []).includes(engId)){
+      items.push({ name: cs.name, priority: sel.priority, weight: PRIORITY_WEIGHT[sel.priority] || 2, catColor: cat.color });
+    }
+  }));
+  items.sort((a,b) => b.weight - a.weight);
+  return items;
+}
+function dominantCatColor(engId){
+  const rat = computeRationale(engId);
+  return rat.length ? rat[0].catColor : 'var(--brand)';
+}
+function countSelectedEngagementsInPhase(phase){ return phase.engIds.filter(id => isEngagementChecked(id)).length; }
+function totalEngagementsSelected(){ return PHASES.reduce((s,p) => s + countSelectedEngagementsInPhase(p), 0); }
+function totalEngagements(){ return PHASES.reduce((s,p) => s + p.engIds.length, 0); }
+
+/* =========================================================
+   RENDER: CHROME (topbar labels, once per lang change)
+   ========================================================= */
+function renderChrome(){
+  const t = STR[STATE.lang];
+  document.getElementById('txt-app-title').textContent = t.appTitle;
+  document.getElementById('txt-app-sub').textContent = t.appSub;
+  document.getElementById('lbl-client').textContent = t.client;
+  document.getElementById('lbl-contact').textContent = t.contact;
+  document.getElementById('lbl-prepared').textContent = t.prepared;
+  document.getElementById('lbl-date').textContent = t.date;
+  document.getElementById('in-client').placeholder = t.clientPh;
+  document.getElementById('in-contact').placeholder = t.contactPh;
+  document.getElementById('txt-footer').textContent = t.footer;
+  document.getElementById('txt-autosaved').textContent = t.autosaved;
+  document.getElementById('lang-es').classList.toggle('active', STATE.lang === 'es');
+  document.getElementById('lang-en').classList.toggle('active', STATE.lang === 'en');
+  document.documentElement.lang = STATE.lang;
+  if(document.getElementById('in-client').value === '') document.getElementById('in-client').value = STATE.client || '';
+  if(document.getElementById('in-contact').value === '') document.getElementById('in-contact').value = STATE.contact || '';
+  if(document.getElementById('in-prepared').value === '') document.getElementById('in-prepared').value = STATE.preparedBy || '';
+  if(document.getElementById('in-date').value === '') document.getElementById('in-date').value = STATE.date || '';
+}
+
+function escapeHtml(s){ return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+/* =========================================================
+   RENDER: STEP NAV
+   ========================================================= */
+function renderStepNav(){
+  const t = STR[STATE.lang];
+  const nav = document.getElementById('stepnav');
+  nav.innerHTML = `
+    <button type="button" class="step-btn ${STATE.view === 'drivers' ? 'active' : ''}" onclick="setView('drivers')">
+      ${t.navDrivers} <span class="step-badge">${totalSelectedDrivers()}/${totalCases()}</span>
+    </button>
+    <span class="step-arrow">→</span>
+    <button type="button" class="step-btn ${STATE.view === 'engagements' ? 'active' : ''}" onclick="setView('engagements')">
+      ${t.navEngagements} <span class="step-badge">${totalEngagementsSelected()}/${totalEngagements()}</span>
+    </button>
+  `;
+}
+
+/* =========================================================
+   RENDER: DRIVERS VIEW
+   ========================================================= */
+function renderRailDrivers(){
+  const rail = document.getElementById('rail');
+  const t = STR[STATE.lang];
+  rail.innerHTML = DATA.map(cat => {
+    const count = countSelectedInCat(cat);
+    const active = cat.id === STATE.activeCat;
+    return `
+      <button type="button" class="rail-tab ${active ? 'active' : ''}" style="${active ? `border-left-color:${cat.color}` : ''}" onclick="setActiveCat('${cat.id}')">
+        <span class="rail-icon" style="color:${cat.color}"><svg viewBox="0 0 24 24">${cat.icon}</svg></span>
+        <span class="rail-text">
+          <span class="rail-name">${cat.title[STATE.lang].split(' — ')[0]}</span>
+          <span class="rail-count">${count} ${t.of} ${cat.cases.length}</span>
+        </span>
+      </button>`;
+  }).join('');
+}
+
+function renderCaseCard(cat, cs){
+  const t = STR[STATE.lang];
+  const sel = getSel(cs.id);
+  const lang = STATE.lang;
+  const kpiRows = cs.kpis.map((kpi, i) => `
+    <div class="kpi-item">
+      <input type="checkbox" id="kpi-${cs.id}-${i}" ${sel.kpis[i] ? 'checked' : ''} onchange="toggleKpi('${cs.id}', ${i})">
+      <label for="kpi-${cs.id}-${i}">${escapeHtml(kpi[lang])}</label>
+    </div>`).join('');
+
+  const detail = sel.selected ? `
+    <div class="case-detail">
+      <div>
+        <div class="detail-block-label">${t.priorityQ}</div>
+        <div class="priority-options">
+          <button type="button" class="priority-btn ${sel.priority === 'alta' ? 'on-alta' : ''}" onclick="setPriority('${cs.id}','alta')">${t.priorityAlta}</button>
+          <button type="button" class="priority-btn ${sel.priority === 'media' ? 'on-media' : ''}" onclick="setPriority('${cs.id}','media')">${t.priorityMedia}</button>
+          <button type="button" class="priority-btn ${sel.priority === 'baja' ? 'on-baja' : ''}" onclick="setPriority('${cs.id}','baja')">${t.priorityBaja}</button>
+        </div>
+      </div>
+      <div>
+        <div class="detail-block-label" style="margin-bottom:6px;">${t.kpisLabel}</div>
+        <div class="kpi-list">${kpiRows}</div>
+      </div>
+      <div class="notes-area">
+        <div class="detail-block-label" style="margin-bottom:6px;">${t.notesLabel}</div>
+        <textarea placeholder="${t.notesPh}" onblur="onNotesInput('${cs.id}', this.value)" oninput="onNotesInput('${cs.id}', this.value)">${escapeHtml(sel.notes)}</textarea>
+      </div>
+    </div>` : '';
+
+  return `
+    <div class="case-card ${sel.selected ? 'selected' : ''}" style="--cat-color:${cat.color}">
+      <div class="case-top">
+        <input type="checkbox" class="case-check" id="chk-${cs.id}" ${sel.selected ? 'checked' : ''} onchange="toggleCase('${cs.id}')">
+        <div style="flex:1; min-width:0;">
+          <label class="case-name" for="chk-${cs.id}">${escapeHtml(cs.name[lang])}</label>
+          <p class="case-features">${escapeHtml(cs.features[lang])}</p>
+          <p class="case-desc">${escapeHtml(cs.desc[lang])}</p>
+        </div>
+      </div>
+      ${detail}
+    </div>`;
+}
+
+function renderDriversView(){
+  const t = STR[STATE.lang];
+  const cat = DATA.find(c => c.id === STATE.activeCat);
+  const main = document.getElementById('main-col');
+  const cardsHtml = cat.cases.length
+    ? `<div class="case-list">${cat.cases.map(cs => renderCaseCard(cat, cs)).join('')}</div>`
+    : `<div class="empty-state">${t.empty}</div>`;
+
+  main.innerHTML = `
+    <div class="cat-header">
+      <div class="swatch" style="background:${cat.color}"></div>
+      <div>
+        <h2>${escapeHtml(cat.title[STATE.lang])}</h2>
+        <p>${escapeHtml(cat.sub[STATE.lang])}</p>
+      </div>
+    </div>
+    <div class="proof-strip"><b>${t.proofLabel}:</b> ${escapeHtml(cat.proof[STATE.lang])}</div>
+    ${cardsHtml}
+    <button type="button" class="cta-link" style="align-self:flex-start;" onclick="setView('engagements')">${t.ctaToEngagements}</button>
+  `;
+  renderRailDrivers();
+}
+
+/* =========================================================
+   RENDER: ENGAGEMENTS VIEW
+   ========================================================= */
+function renderRailEngagements(){
+  const rail = document.getElementById('rail');
+  const t = STR[STATE.lang];
+  rail.innerHTML = PHASES.map(phase => {
+    const count = countSelectedEngagementsInPhase(phase);
+    return `
+      <button type="button" class="rail-tab" onclick="scrollToPhase('${phase.id}')">
+        <span class="rail-icon"><svg viewBox="0 0 24 24">${phase.icon}</svg></span>
+        <span class="rail-text">
+          <span class="rail-name">${phase.title[STATE.lang].split(' — ')[0]}</span>
+          <span class="rail-count">${count} ${t.phaseOf} ${phase.engIds.length}</span>
+        </span>
+      </button>`;
+  }).join('');
+}
+function scrollToPhase(id){
+  const el = document.getElementById('phase-' + id);
+  if(el) el.scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function renderRecommendationBanner(){
+  const t = STR[STATE.lang];
+  if(!anyDriverSelected()){
+    return `<div class="rec-banner"><div class="rec-banner-title">${t.recTitle}</div><div class="rec-empty">${t.recEmpty}</div></div>`;
+  }
+  const top3 = computeTop3();
+  if(!top3.length){
+    return `<div class="rec-banner"><div class="rec-banner-title">${t.recTitle}</div><div class="rec-empty">${t.recEmpty}</div></div>`;
+  }
+  const cards = top3.map((engId, i) => {
+    const eng = findEngagement(engId);
+    const phase = findPhaseOf(engId);
+    const rationale = computeRationale(engId);
+    const color = dominantCatColor(engId);
+    const priorityLabel = { alta:t.priorityAlta, media:t.priorityMedia, baja:t.priorityBaja };
+    const whyText = rationale.map(r => `${r.name[STATE.lang]} (${priorityLabel[r.priority] || r.priority})`).join(', ');
+    return `
+      <div class="rec-card" style="--rec-color:${color}">
+        <div class="rec-rank">#${i + 1}</div>
+        <div class="rec-name">${escapeHtml(eng.name[STATE.lang])}</div>
+        <div class="rec-phase">${escapeHtml(phase.title[STATE.lang])}</div>
+        <div class="rec-why"><b>${t.recWhy}</b> ${escapeHtml(whyText)}</div>
+      </div>`;
+  }).join('');
+  return `<div class="rec-banner"><div class="rec-banner-title">${t.recTitle}</div><div class="rec-grid">${cards}</div></div>`;
+}
+
+function renderFoundationalBanner(){
+  const t = STR[STATE.lang];
+  return `
+    <div class="found-banner">
+      <svg viewBox="0 0 24 24"><path d="M12 3l7 3.1v5.4c0 5.2-3.6 8.4-7 9.5-3.4-1.1-7-4.3-7-9.5V6.1L12 3z"/><path d="M9 12.2l2.1 2.1 3.9-4.3"/></svg>
+      <div>
+        <div class="found-banner-title">${t.foundTitle}</div>
+        <div class="found-banner-text">${t.foundText}</div>
+      </div>
+    </div>`;
+}
+
+function renderEngagementCard(eng){
+  const t = STR[STATE.lang];
+  const lang = STATE.lang;
+  const checked = isEngagementChecked(eng.id);
+  const foundational = isFoundational(eng.id);
+  const recommended = !foundational && computeTop3().includes(eng.id);
+  const statusHtml = eng.status ? `<span class="status-badge ${STATUS_BADGE_CLASS[eng.status]}">${STATUS_LABELS[eng.status][lang]}</span>` : '';
+  const tagHtml = foundational
+    ? `<span class="tag-pill tag-fundamental">${t.tagFoundational}</span>`
+    : (recommended ? `<span class="tag-pill tag-recommended">${t.tagRecommended}</span>` : '');
+  const deliverables = eng.deliverables[lang].map(d => `<li>${escapeHtml(d)}</li>`).join('');
+
+  return `
+    <div class="eng-card ${checked ? 'checked' : ''}">
+      <div class="eng-top">
+        <input type="checkbox" class="eng-check" id="eng-${eng.id}" ${checked ? 'checked' : ''} onchange="toggleEngagement('${eng.id}')">
+        <div style="flex:1; min-width:0;">
+          <div class="eng-title-row">
+            <label class="eng-name" for="eng-${eng.id}">${escapeHtml(eng.name[lang])}</label>
+            ${statusHtml}
+            ${tagHtml}
+          </div>
+          <p class="eng-desc">${escapeHtml(eng.desc[lang])}</p>
+          <div class="eng-detail-row">
+            <div class="eng-detail-col">
+              <div class="eng-detail-label">${t.deliverablesLabel}</div>
+              <ul class="deliv-list">${deliverables}</ul>
+            </div>
+            <div class="eng-detail-col" style="flex:0 1 160px;">
+              <div class="eng-detail-label">${t.estTimeLabel}</div>
+              <div class="eng-time">${escapeHtml(eng.time[lang])}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderPhaseSection(phase){
+  const t = STR[STATE.lang];
+  const count = countSelectedEngagementsInPhase(phase);
+  const cardsHtml = phase.engIds.map(id => renderEngagementCard(findEngagement(id))).join('');
+  return `
+    <div class="phase-section" id="phase-${phase.id}">
+      <div class="phase-header">
+        <span class="phase-icon"><svg viewBox="0 0 24 24">${phase.icon}</svg></span>
+        <h3>${escapeHtml(phase.title[STATE.lang])}</h3>
+        <span class="phase-count">${count} ${t.phaseOf} ${phase.engIds.length}</span>
+      </div>
+      <div class="case-list">${cardsHtml}</div>
+    </div>`;
+}
+
+function renderEngagementsView(){
+  const t = STR[STATE.lang];
+  const main = document.getElementById('main-col');
+  const phasesHtml = PHASES.map(p => renderPhaseSection(p)).join('');
+  main.innerHTML = `
+    <div class="eng-intro">
+      <h2>${t.engHeading}</h2>
+      <p>${t.engSub}</p>
+    </div>
+    ${renderRecommendationBanner()}
+    ${renderFoundationalBanner()}
+    <div>
+      <div class="catalog-title">${t.catalogTitle}</div>
+      <div class="catalog-hint">${t.catalogHint}</div>
+    </div>
+    ${phasesHtml}
+    <button type="button" class="cta-link" style="align-self:flex-start;" onclick="setView('drivers')">${t.ctaToDrivers}</button>
+  `;
+  renderRailEngagements();
+}
+
+/* =========================================================
+   RENDER: SUMMARY
+   ========================================================= */
+function renderSummary(){
+  const t = STR[STATE.lang];
+  const s = document.getElementById('summary');
+  const selD = totalSelectedDrivers();
+  const totD = totalCases();
+  const kpiN = totalKpisConfirmed();
+  const selE = totalEngagementsSelected();
+  const totE = totalEngagements();
+
+  const bars = DATA.map(cat => {
+    const c = countSelectedInCat(cat);
+    const pct = cat.cases.length ? Math.round((c / cat.cases.length) * 100) : 0;
+    return `
+      <div class="cat-bar-row">
+        <span style="width:78px; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${cat.title[STATE.lang].split(' — ')[0]}</span>
+        <span class="cat-bar-track"><span class="cat-bar-fill" style="width:${pct}%; background:${cat.color};"></span></span>
+        <span class="cat-bar-count">${c}/${cat.cases.length}</span>
+      </div>`;
+  }).join('');
+
+  s.innerHTML = `
+    <h3>${t.summaryTitle}</h3>
+    <div class="summary-total"><span class="num">${selD}</span><span class="lbl">${t.of} ${totD} ${t.summaryDrivers}</span></div>
+    <div class="cat-bars">${bars}</div>
+    <div class="kpi-total">${t.kpiTotal}: <b>${kpiN}</b></div>
+    <div class="summary-divider"></div>
+    <div class="summary-total"><span class="num" style="color:var(--c-derisk)">${selE}</span><span class="lbl">${t.of} ${totE} ${t.summaryEng}</span></div>
+    <div class="export-btns">
+      <button type="button" class="btn btn-primary" id="btn-pdf" onclick="exportPdf()">
+        <svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M14 2v6h6"/></svg>
+        ${t.exportPdf}
+      </button>
+      <button type="button" class="btn btn-secondary" id="btn-md" onclick="exportMarkdown()">
+        <svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/><path d="M7 15V9l3 3 3-3v6M15 9v6M13 13l2 2 2-2"/></svg>
+        ${t.exportMd}
+      </button>
+      <div class="export-hint">${t.exportHint}</div>
+    </div>
+    <button type="button" class="reset-link" onclick="resetAll()">${t.reset}</button>
+  `;
+}
+
+/* =========================================================
+   TOP-LEVEL RENDER
+   ========================================================= */
+function render(){
+  renderStepNav();
+  if(STATE.view === 'drivers') renderDriversView(); else renderEngagementsView();
+  renderSummary();
+}
+
+/* =========================================================
+   EXPORT HELPERS
+   ========================================================= */
+function buildDriverReportRows(){
+  const rows = [];
+  DATA.forEach(cat => {
+    const selectedCases = cat.cases.filter(cs => getSel(cs.id).selected);
+    if(selectedCases.length) rows.push({ cat, selectedCases });
+  });
+  return rows;
+}
+function buildEngagementReportRows(){
+  const rows = [];
+  PHASES.forEach(phase => {
+    const selectedEngs = phase.engIds.map(id => findEngagement(id)).filter(eng => isEngagementChecked(eng.id));
+    if(selectedEngs.length) rows.push({ phase, selectedEngs });
+  });
+  return rows;
+}
+function legacyDownload(filename, blob){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+/* When this page runs as a published Claude artifact, plain browser
+   downloads are inert, so we offer the file through the platform's
+   "downloads" capability instead. When this page runs as a plain local
+   HTML file (window.claude does not exist there), we fall back to the
+   ordinary Blob+<a download> approach, so the same file keeps working
+   in both places. */
+async function offerDownload(filename, blob){
+  if(window.claude && typeof window.claude.use === 'function'){
+    try{
+      const downloads = await window.claude.use('downloads');
+      if(downloads){
+        try{
+          await downloads.save({ filename, data: blob });
+        }catch(err){
+          if(err && err.code === 'declined') return;
+          alert(STATE.lang === 'es'
+            ? 'No se pudo guardar el archivo en este visor. Intenta de nuevo.'
+            : 'Could not save the file in this viewer. Please try again.');
+        }
+        return;
+      }
+    }catch(e){ /* capability unavailable, fall through to legacy path */ }
+  }
+  legacyDownload(filename, blob);
+}
+
+async function downloadBlob(filename, mime, content){
+  const blob = new Blob([content], { type: mime });
+  await offerDownload(filename, blob);
+}
+
+/* =========================================================
+   EXPORT: MARKDOWN
+   ========================================================= */
+async function exportMarkdown(){
+  const btn = document.getElementById('btn-md');
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = STATE.lang === 'es' ? 'Generando…' : 'Generating…';
+  try{
+    await buildAndSaveMarkdown();
+  }finally{
+    btn.disabled = false;
+    btn.innerHTML = originalLabel;
+  }
+}
+
+async function buildAndSaveMarkdown(){
+  const t = STR[STATE.lang];
+  const lang = STATE.lang;
+  const priorityLabel = { alta:t.priorityAlta, media:t.priorityMedia, baja:t.priorityBaja };
+
+  let md = '';
+  md += lang === 'es' ? `# Grafana — Value Drivers & Roadmap de Engagements\n\n` : `# Grafana — Value Drivers & Engagement Roadmap\n\n`;
+  md += `**${t.client}:** ${STATE.client || '—'}\n`;
+  md += `**${t.contact}:** ${STATE.contact || '—'}\n`;
+  md += `**${t.prepared}:** ${STATE.preparedBy || '—'}\n`;
+  md += `**${t.date}:** ${STATE.date || '—'}\n\n`;
+
+  md += (lang === 'es' ? `## Resumen\n` : `## Summary\n`);
+  md += `- ${lang === 'es' ? 'Value drivers seleccionados' : 'Value drivers selected'}: ${totalSelectedDrivers()}/${totalCases()}\n`;
+  md += `- ${t.kpiTotal}: ${totalKpisConfirmed()}\n`;
+  md += `- ${lang === 'es' ? 'Engagements seleccionados' : 'Engagements selected'}: ${totalEngagementsSelected()}/${totalEngagements()}\n\n`;
+
+  md += lang === 'es' ? `## 1. Value Drivers\n\n` : `## 1. Value Drivers\n\n`;
+  const dRows = buildDriverReportRows();
+  if(!dRows.length){
+    md += lang === 'es' ? '_Aún no se seleccionaron casos de uso._\n\n' : '_No use cases selected yet._\n\n';
+  }
+  dRows.forEach(({ cat, selectedCases }) => {
+    md += `### ${cat.title[lang]} (${selectedCases.length}/${cat.cases.length})\n\n`;
+    selectedCases.forEach(cs => {
+      const sel = getSel(cs.id);
+      const prio = sel.priority ? priorityLabel[sel.priority] : '—';
+      md += `**${cs.name[lang]}** — ${t.priorityQ} ${prio}\n\n`;
+      md += `${lang === 'es' ? 'Características' : 'Features'}: ${cs.features[lang]}\n\n`;
+      const confirmedKpis = cs.kpis.filter((_, i) => sel.kpis[i]);
+      if(confirmedKpis.length){
+        md += `${t.kpisLabel}:\n`;
+        confirmedKpis.forEach(k => md += `- ${k[lang]}\n`);
+        md += `\n`;
+      }
+      if(sel.notes && sel.notes.trim()) md += `${lang === 'es' ? 'Notas' : 'Notes'}: ${sel.notes.trim()}\n\n`;
+    });
+  });
+
+  md += lang === 'es' ? `## 2. Roadmap de Engagements\n\n` : `## 2. Engagement Roadmap\n\n`;
+  const top3 = computeTop3();
+  if(anyDriverSelected() && top3.length){
+    md += lang === 'es' ? `### Recomendados según los Value Drivers seleccionados\n\n` : `### Recommended based on the selected Value Drivers\n\n`;
+    top3.forEach((engId, i) => {
+      const eng = findEngagement(engId);
+      const rationale = computeRationale(engId);
+      const whyText = rationale.map(r => `${r.name[lang]} (${priorityLabel[r.priority] || r.priority})`).join(', ');
+      md += `${i + 1}. **${eng.name[lang]}** — ${t.recWhy} ${whyText}\n`;
+    });
+    md += `\n`;
+  }
+
+  const eRows = buildEngagementReportRows();
+  if(!eRows.length){
+    md += lang === 'es' ? '_No se seleccionaron engagements._\n\n' : '_No engagements selected._\n\n';
+  }
+  eRows.forEach(({ phase, selectedEngs }) => {
+    md += `### ${phase.title[lang]}\n\n`;
+    selectedEngs.forEach(eng => {
+      const tag = isFoundational(eng.id) ? ` [${t.tagFoundational}]` : (top3.includes(eng.id) ? ` [${t.tagRecommended}]` : '');
+      const status = eng.status ? ` — ${STATUS_LABELS[eng.status][lang]}` : '';
+      md += `**${eng.name[lang]}${tag}${status}**\n\n`;
+      md += `${eng.desc[lang]}\n\n`;
+      md += `${t.deliverablesLabel}:\n`;
+      eng.deliverables[lang].forEach(d => md += `- ${d}\n`);
+      md += `\n${t.estTimeLabel}: ${eng.time[lang]}\n\n---\n\n`;
+    });
+  });
+
+  md += lang === 'es'
+    ? `_Generado con la herramienta interactiva de Value Drivers & Engagement Roadmap — Grafana Labs._\n`
+    : `_Generated with the interactive Value Drivers & Engagement Roadmap tool — Grafana Labs._\n`;
+
+  const filenameClient = (STATE.client || (lang === 'es' ? 'cliente' : 'client')).replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+  await downloadBlob(`grafana-roadmap-${filenameClient}.md`, 'text/markdown;charset=utf-8', md);
+}
+
+/* =========================================================
+   EXPORT: PDF
+   ========================================================= */
+function loadScript(src){
+  return new Promise((resolve, reject) => {
+    if(document.querySelector(`script[src="${src}"]`)){ resolve(); return; }
+    const s = document.createElement('script');
+    s.src = src; s.onload = () => resolve(); s.onerror = () => reject(new Error('load failed: ' + src));
+    document.head.appendChild(s);
+  });
+}
+async function ensureJsPdf(){ if(window.jspdf) return; await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'); }
+function hexToRgb(hex){ hex = hex.replace('#',''); const n = parseInt(hex,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+
+async function exportPdf(){
+  const btn = document.getElementById('btn-pdf');
+  const originalLabel = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = STATE.lang === 'es' ? 'Generando…' : 'Generating…';
+  try{ await ensureJsPdf(); await buildPdf(); }
+  catch(e){
+    alert(STATE.lang === 'es'
+      ? 'No se pudo generar el PDF (revisa tu conexión a internet e inténtalo de nuevo).'
+      : 'Could not generate the PDF (check your internet connection and try again).');
+  }finally{ btn.disabled = false; btn.innerHTML = originalLabel; }
+}
+
+async function buildPdf(){
+  const t = STR[STATE.lang];
+  const lang = STATE.lang;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'pt', format:'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const marginX = 48;
+  const contentW = pageW - marginX * 2;
+  let y = 56;
+
+  const brand = hexToRgb('#ff8833');
+  const dim = [110,116,128];
+  const dark = [30,32,38];
+  const priorityLabel = { alta:t.priorityAlta, media:t.priorityMedia, baja:t.priorityBaja };
+
+  function newPageIfNeeded(h){ if(y + h > pageH - 56){ doc.addPage(); y = 56; } }
+  function text(str, x, size, weight, color, maxWidth, lineHeight){
+    doc.setFont('helvetica', weight || 'normal');
+    doc.setFontSize(size);
+    doc.setTextColor(color[0], color[1], color[2]);
+    const lines = maxWidth ? doc.splitTextToSize(str, maxWidth) : [str];
+    const lh = lineHeight || size * 1.35;
+    lines.forEach(line => { newPageIfNeeded(lh); doc.text(line, x, y); y += lh; });
+    return lines.length * lh;
+  }
+  function sectionDivider(){
+    newPageIfNeeded(20);
+    doc.setDrawColor(220,220,220);
+    doc.line(marginX, y, pageW - marginX, y);
+    y += 16;
+  }
+
+  // Header
+  doc.setFillColor(brand[0], brand[1], brand[2]);
+  doc.rect(marginX, y - 14, 5, 16, 'F');
+  text(lang === 'es' ? 'Grafana — Value Drivers & Roadmap de Engagements' : 'Grafana — Value Drivers & Engagement Roadmap', marginX + 14, 16, 'bold', dark);
+  y += 4;
+  text(`${t.client}: ${STATE.client || '—'}    ${t.contact}: ${STATE.contact || '—'}`, marginX, 10, 'normal', dim, contentW);
+  text(`${t.prepared}: ${STATE.preparedBy || '—'}    ${t.date}: ${STATE.date || '—'}`, marginX, 10, 'normal', dim, contentW);
+  y += 6;
+  sectionDivider();
+
+  // Summary
+  text(lang === 'es' ? 'Resumen' : 'Summary', marginX, 13, 'bold', dark);
+  y += 2;
+  text(`${lang === 'es' ? 'Value drivers seleccionados' : 'Value drivers selected'}: ${totalSelectedDrivers()}/${totalCases()}   ${t.kpiTotal}: ${totalKpisConfirmed()}   ${lang === 'es' ? 'Engagements' : 'Engagements'}: ${totalEngagementsSelected()}/${totalEngagements()}`, marginX, 10.5, 'normal', dim, contentW);
+  y += 16;
+
+  // Section 1: Value Drivers
+  text(lang === 'es' ? '1. Value Drivers' : '1. Value Drivers', marginX, 13.5, 'bold', dark);
+  y += 4;
+  const dRows = buildDriverReportRows();
+  if(!dRows.length){
+    text(lang === 'es' ? 'Aún no se seleccionaron casos de uso.' : 'No use cases selected yet.', marginX, 11, 'italic', dim, contentW);
+  }
+  dRows.forEach(({ cat, selectedCases }) => {
+    newPageIfNeeded(30);
+    const catRgb = hexToRgb(cat.colorHex);
+    doc.setFillColor(catRgb[0], catRgb[1], catRgb[2]);
+    doc.circle(marginX + 4, y - 4, 4, 'F');
+    text(`${cat.title[lang]}  (${selectedCases.length}/${cat.cases.length})`, marginX + 16, 12, 'bold', dark, contentW - 16);
+    y += 3;
+    selectedCases.forEach(cs => {
+      const sel = getSel(cs.id);
+      const prio = sel.priority ? priorityLabel[sel.priority] : '—';
+      newPageIfNeeded(28);
+      text(`•  ${cs.name[lang]}  —  ${t.priorityQ} ${prio}`, marginX + 10, 11, 'bold', dark, contentW - 10);
+      text(`${lang === 'es' ? 'Características' : 'Features'}: ${cs.features[lang]}`, marginX + 18, 9.5, 'normal', dim, contentW - 18);
+      const confirmedKpis = cs.kpis.filter((_, i) => sel.kpis[i]);
+      if(confirmedKpis.length){
+        text(`${t.kpisLabel}:`, marginX + 18, 9.5, 'bold', dark, contentW - 18);
+        confirmedKpis.forEach(k => text(`- ${k[lang]}`, marginX + 24, 9.5, 'normal', dim, contentW - 24));
+      }
+      if(sel.notes && sel.notes.trim()) text(`${lang === 'es' ? 'Notas' : 'Notes'}: ${sel.notes.trim()}`, marginX + 18, 9.5, 'italic', dim, contentW - 18);
+      y += 5;
+    });
+    y += 6;
+  });
+
+  y += 4;
+  sectionDivider();
+
+  // Section 2: Engagements
+  text(lang === 'es' ? '2. Roadmap de Engagements' : '2. Engagement Roadmap', marginX, 13.5, 'bold', dark);
+  y += 4;
+
+  const top3 = computeTop3();
+  if(anyDriverSelected() && top3.length){
+    text(lang === 'es' ? 'Recomendados según los Value Drivers seleccionados:' : 'Recommended based on the selected Value Drivers:', marginX, 10.5, 'bold', dark, contentW);
+    top3.forEach((engId, i) => {
+      const eng = findEngagement(engId);
+      const rationale = computeRationale(engId);
+      const whyText = rationale.map(r => `${r.name[lang]} (${priorityLabel[r.priority] || r.priority})`).join(', ');
+      text(`${i + 1}. ${eng.name[lang]} — ${t.recWhy} ${whyText}`, marginX + 6, 9.5, 'normal', dim, contentW - 6);
+    });
+    y += 8;
+  }
+
+  const eRows = buildEngagementReportRows();
+  if(!eRows.length){
+    text(lang === 'es' ? 'No se seleccionaron engagements.' : 'No engagements selected.', marginX, 11, 'italic', dim, contentW);
+  }
+  eRows.forEach(({ phase, selectedEngs }) => {
+    newPageIfNeeded(28);
+    text(phase.title[lang], marginX, 12, 'bold', dark, contentW);
+    y += 2;
+    selectedEngs.forEach(eng => {
+      newPageIfNeeded(30);
+      const tag = isFoundational(eng.id) ? ` [${t.tagFoundational}]` : (top3.includes(eng.id) ? ` [${t.tagRecommended}]` : '');
+      const status = eng.status ? `  ·  ${STATUS_LABELS[eng.status][lang]}` : '';
+      text(`•  ${eng.name[lang]}${tag}${status}`, marginX + 10, 11, 'bold', dark, contentW - 10);
+      text(eng.desc[lang], marginX + 18, 9.5, 'normal', dim, contentW - 18);
+      text(`${t.deliverablesLabel}:`, marginX + 18, 9, 'bold', dark, contentW - 18);
+      eng.deliverables[lang].forEach(d => text(`- ${d}`, marginX + 24, 9, 'normal', dim, contentW - 24));
+      text(`${t.estTimeLabel}: ${eng.time[lang]}`, marginX + 18, 9, 'italic', dim, contentW - 18);
+      y += 6;
+    });
+    y += 4;
+  });
+
+  // Footer
+  const pageCount = doc.internal.getNumberOfPages();
+  for(let i = 1; i <= pageCount; i++){
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(150,150,150);
+    doc.text(`${STATE.preparedBy || 'Grafana Labs'} · ${STATE.date || ''}`, marginX, pageH - 28);
+    doc.text(String(i) + ' / ' + pageCount, pageW - marginX - 24, pageH - 28);
+  }
+
+  const filenameClient = (STATE.client || (lang === 'es' ? 'cliente' : 'client')).replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+  const blob = doc.output('blob');
+  await offerDownload(`grafana-roadmap-${filenameClient}.pdf`, blob);
+}
+
+/* =========================================================
+   BOOT
+   ========================================================= */
+renderChrome();
+render();
+</script>
+</body>
+</html>
